@@ -1,0 +1,22 @@
+apply plugin: 'maven'
+apply plugin: 'java'
+
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven'
+    apply plugin: 'idea'
+    group = "ioio"
+    version = '1.0.0'
+
+    sourceCompatibility = 1.6
+    targetCompatibility = 1.6
+
+    repositories {
+//        mavenCentral()
+        mavenLocal()
+    }
+
+    dependencies {
+        testCompile 'junit:junit:4.11'
+    }
+}
