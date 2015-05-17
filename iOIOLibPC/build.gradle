@@ -1,6 +1,7 @@
 apply plugin: 'maven'
 apply plugin: 'java'
 
+version = '5.0.4'
 
 dependencies {
     compile fileTree (dir: "../libs/pc", include: '*.jar')
