@@ -1,3 +1,5 @@
-include "iOIOLib"
+include "iOIOLibPC"
+include "iOIOLibAndroid"
+include "iOIOLibAccessory"
 include 'AbsoluteEncoderEmulator'
 

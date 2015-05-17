@@ -1,8 +1,16 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:1.1.0'
+    }
+}
+
 apply plugin: 'maven'
 apply plugin: 'java'
 
 allprojects {
-    apply plugin: 'java'
     apply plugin: 'maven'
     apply plugin: 'idea'
     group = "ioio"
@@ -12,11 +20,10 @@ allprojects {
     targetCompatibility = 1.6
 
     repositories {
-//        mavenCentral()
         mavenLocal()
+        mavenCentral()
+        jcenter()
     }
 
-    dependencies {
-        testCompile 'junit:junit:4.11'
-    }
+
 }
