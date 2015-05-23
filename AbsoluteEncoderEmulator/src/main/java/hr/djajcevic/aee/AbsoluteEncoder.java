@@ -1,5 +1,7 @@
 package hr.djajcevic.aee;
 
+import java.util.Arrays;
+
 /**
  * @author djajcevic | 17.05.2015.
  */
@@ -9,10 +11,12 @@ public class AbsoluteEncoder implements Encoder {
 
     private String name;
     private int position;
+    private int resolution;
 
-    public AbsoluteEncoder(String name, int position) {
+    public AbsoluteEncoder(String name, int position, int resolution) {
         this.name = name;
         this.position = position;
+        this.resolution = resolution;
     }
 
     @Override
@@ -28,7 +32,7 @@ public class AbsoluteEncoder implements Encoder {
 
                 break;
         }
-        System.out.println(name + ": " + position);
+        System.out.println(name + ": " + position + ": GRAY " + Arrays.toString(GrayCodeUtil.grayEncode(position, resolution)));
         return position;
     }
 

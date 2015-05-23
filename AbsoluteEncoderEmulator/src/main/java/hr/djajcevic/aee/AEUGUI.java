@@ -53,8 +53,8 @@ public class AEUGUI extends JFrame implements KeyListener {
         contentPane.add(downArrow);
         contentPane.add(new Label(""));
 
-        horizontalEncoder = new AbsoluteEncoder("Horizontal", 0);
-        verticalEncoder = new AbsoluteEncoder("Vertical", 0);
+        horizontalEncoder = new AbsoluteEncoder("Horizontal", 0, 8);
+        verticalEncoder = new AbsoluteEncoder("Vertical", 0, 8);
 
         addKeyListener(this);
 
