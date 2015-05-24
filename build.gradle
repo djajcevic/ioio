@@ -25,5 +25,19 @@ allprojects {
         jcenter()
     }
 
+    afterEvaluate { project ->
+        if (project.plugins.hasPlugin('com.android.library')) {
+            println 'Created installArchives task'
+            task installArchives(type: Upload) {
+                description "Installs the artifacts to the local Maven repository."
+                repositories.mavenInstaller {
+                    configuration = configurations.default
+                    pom.groupId = project.group
+                    pom.artifactId = project.name
+                    pom.version = project.version
+                }
+            }
+        }
+    }
 
 }
