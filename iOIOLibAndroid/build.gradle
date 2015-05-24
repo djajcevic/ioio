@@ -28,6 +28,21 @@ android {
     }
 }
 
+//// build JAR file
+//task androidReleaseJar(type: Jar, dependsOn: assembleRelease) {
+//    from "$buildDir/classes/release/"
+//}
+//
+//apply plugin: 'maven-publish'
+//
+//publishing {
+//    publications {
+//        maven(MavenPublication) {
+//            artifact androidReleaseJar
+//        }
+//    }
+//}
+
 //dependencies {
 //    compile 'com.android.support:appcompat-v7:22.0.0'
 //    compile 'com.android.support:support-v4:22.0.0'
