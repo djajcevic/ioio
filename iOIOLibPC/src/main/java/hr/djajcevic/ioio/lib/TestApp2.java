@@ -1,7 +1,8 @@
-package ioio.lib;
+package hr.djajcevic.ioio.lib;
 
 import ioio.lib.api.DigitalOutput;
 import ioio.lib.api.IOIO;
+import ioio.lib.api.PwmOutput;
 import ioio.lib.api.exception.ConnectionLostException;
 import ioio.lib.util.BaseIOIOLooper;
 import ioio.lib.util.IOIOLooper;
@@ -18,7 +19,13 @@ public class TestApp2 extends IOIOConsoleApp {
 
     private DigitalOutput statLed;
     private DigitalOutput pin1;
+    private DigitalOutput pin3;
     private boolean firstLedOn;
+    private PwmOutput pwmOutput;
+
+    static {
+        System.setProperty("ioio.SerialPorts", "/dev/tty.usbmodem1421");
+    }
 
     @Override
     protected void run(final String[] args) throws Exception {
@@ -38,28 +45,34 @@ public class TestApp2 extends IOIOConsoleApp {
             @Override
             protected void setup() throws ConnectionLostException, InterruptedException {
                 super.setup();
-                statLed = ioio_.openDigitalOutput(IOIO.LED_PIN, true);
+                statLed = ioio_.openDigitalOutput(IOIO.LED_PIN);
                 pin1 = ioio_.openDigitalOutput(1);
+//                pin3 = ioio_.openDigitalOutput(3);
+                pwmOutput = ioio_.openPwmOutput(3, 1024);
             }
 
             @Override
             public void loop() throws ConnectionLostException, InterruptedException {
-                statLed.write(true);
 
-                // -Dioio.SerialPorts=/dev/tty.usbmodem1411
+
+                // -Dioio.SerialPorts=/dev/tty.usbmodem1421
                 doYourStuff();
 
-                Thread.sleep(1000);
-                statLed.write(false);
-                Thread.sleep(1000);
+
             }
         };
     }
 
-    private void doYourStuff() throws ConnectionLostException {
+    private void doYourStuff() throws ConnectionLostException, InterruptedException {
         System.out.println(new Date() + ": " + firstLedOn);
-        pin1.write(firstLedOn);
+//        pin1.write(firstLedOn);
         firstLedOn = !firstLedOn;
+        statLed.write(false);
+        pwmOutput.setPulseWidth(10);
+        Thread.sleep(1000);
+        pwmOutput.setPulseWidth(0);
+        statLed.write(true);
+        Thread.sleep(1000);
     }
 
     public static void main(String[] args) throws Exception {
