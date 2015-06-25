@@ -1,81 +1,82 @@
 package hr.djajcevic.spc;
 
+import lombok.Data;
+
 /**
  * @author djajcevic | 24.06.2015.
  */
+@Data
 public class SystemInformation {
 
-    private boolean onNorth;
-    private double longitude, latitude;
-
+    /**
+     * Flag indicating if system is parked (parking position)
+     */
     private boolean parked;
 
+    /**
+     * Flag indicating if system is parked (parking position) at X axis
+     */
+    private boolean parkedX;
+
+    /**
+     * Flag indicating if system is parked (parking position) at Y axis
+     */
+    private boolean parkedY;
+
+    /**
+     * Flag indicating if compass is available
+     */
     private boolean compassAvailable;
+
+    /**
+     * Flag indicating if system (panel) is facing north
+     */
+    private boolean onNorth;
+
+    /**
+     * Flag indicating if GPS is available
+     */
     private boolean gpsAvailable;
 
+    /**
+     * Current system longitude
+     */
+    private Double longitude;
+
+    /**
+     * Current system latitude
+     */
+    private Double latitude;
+
+    /**
+     * Flags indicating servo availability
+     */
     private boolean xServoAvailable, yServoAvailable;
 
-    public boolean isOnNorth() {
-        return onNorth;
-    }
+    /**
+     * Target azimuth or panel x position
+     */
+    private Double targetAzimut;
 
-    public void setOnNorth(final boolean onNorth) {
-        this.onNorth = onNorth;
-    }
+    /**
+     * Target height or y panel position2
+     */
+    private Double targetHeight;
 
-    public double getLongitude() {
-        return longitude;
-    }
+    /**
+     * Flag indicating target azimuth has been reached and panel is at right x position
+     */
+    private Boolean targetAzimuthReached;
 
-    public void setLongitude(final double longitude) {
-        this.longitude = longitude;
-    }
+    /**
+     * Flag indicating target height has been reached and panel is at right y position
+     */
+    private Boolean targetHeightReached;
 
-    public double getLatitude() {
-        return latitude;
-    }
+    /**
+     * Panel information
+     */
+    ServoInformation servoInformation;
 
-    public void setLatitude(final double latitude) {
-        this.latitude = latitude;
-    }
 
-    public boolean isParked() {
-        return parked;
-    }
-
-    public void setParked(final boolean parked) {
-        this.parked = parked;
-    }
-
-    public boolean isCompassAvailable() {
-        return compassAvailable;
-    }
-
-    public void setCompassAvailable(final boolean compassAvailable) {
-        this.compassAvailable = compassAvailable;
-    }
-
-    public boolean isGpsAvailable() {
-        return gpsAvailable;
-    }
-
-    public void setGpsAvailable(final boolean gpsAvailable) {
-        this.gpsAvailable = gpsAvailable;
-    }
-
-    public boolean isxServoAvailable() {
-        return xServoAvailable;
-    }
-
-    public void setxServoAvailable(final boolean xServoAvailable) {
-        this.xServoAvailable = xServoAvailable;
-    }
-
-    public boolean isyServoAvailable() {
-        return yServoAvailable;
-    }
-
-    public void setyServoAvailable(final boolean yServoAvailable) {
-        this.yServoAvailable = yServoAvailable;
-    }
 }

@@ -1,7 +1,5 @@
 package hr.djajcevic.spc;
 
-import hr.djajcevic.spc.encoder.ServoMotorStepEncoder;
-
 /**
  * @author djajcevic | 24.06.2015.
  */
@@ -9,24 +7,60 @@ public class SolarPanelControllerImpl implements SolarPanelController {
 
     private SystemInformation systemInformation;
 
-    private ServoMotorStepEncoder xServoStepEncoder;
-    private ServoMotorStepEncoder yServoStepEncoder;
+    private PositioningDelegate positioningDelegate;
 
     private PositioningListener positioningListener;
 
-    public SolarPanelControllerImpl(final ServoMotorStepEncoder xServoStepEncoder, final ServoMotorStepEncoder yServoStepEncoder) {
-        this.xServoStepEncoder = xServoStepEncoder;
-        this.yServoStepEncoder = yServoStepEncoder;
+    /**
+     * Flag that indicates if system has been initially checked and panel is parked.
+     */
+    private boolean systemCheckedAndRepositioned = false;
+
+    public SolarPanelControllerImpl(final PositioningDelegate positioningDelegate) {
+        this.positioningDelegate = positioningDelegate;
     }
 
     @Override
     public void checkSystem() {
+        boolean proceed = checkSystemInformation();
 
+        if (false == proceed) return;
+
+        if (false == systemCheckedAndRepositioned) return;
+
+        parkSystem();
+
+        systemCheckedAndRepositioned = true;
+
+    }
+
+    private boolean checkSystemInformation() {
+        if (systemInformation == null) return false;
+
+        // GPS // check if GPS information is available
+        Double latitude = systemInformation.getLatitude();
+        Double longitude = systemInformation.getLongitude();
+        if (false == systemInformation.isGpsAvailable() && (latitude == null || longitude == null)) return false;
+
+        // COMPASS // check if compass data is available
+        if (false == systemInformation.isCompassAvailable()) return false;
+
+        // checks passed
+        return true;
     }
 
     @Override
     public void parkSystem() {
+        boolean reachedTarget = false;
+        do {
+            positioningDelegate.moveXPanelLeft(systemInformation);
+        } while (systemInformation.isParkedX());
 
+        do {
+            positioningDelegate.moveXPanelLeft(systemInformation);
+        } while (systemInformation.isParkedY());
+
+        systemInformation.setParked(true);
     }
 
     @Override
