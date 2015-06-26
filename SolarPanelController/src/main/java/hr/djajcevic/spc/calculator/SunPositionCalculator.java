@@ -522,6 +522,7 @@ public class SunPositionCalculator {
         System.out.println("Sunset: " + calendar.getTime());
 
         System.out.println(spa);
+        System.out.println(spa.azimuth_astro);
 
         System.out.println(topocentric_azimuth_angle(0.005866799229077125));
         System.out.println(topocentric_azimuth_angle(-1.2922775524868455));

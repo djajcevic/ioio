@@ -49,6 +49,16 @@ public class SystemInformation {
     private Double latitude;
 
     /**
+     * System elevation
+     */
+    private int elevation;
+
+    /**
+     * Air pressure around system. Default 820.
+     */
+    private int pressure = 820;
+
+    /**
      * Flags indicating servo availability
      */
     private boolean xServoAvailable, yServoAvailable;

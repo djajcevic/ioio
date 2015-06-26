@@ -3,15 +3,31 @@ package hr.djajcevic.spc;
 /**
  * @author djajcevic | 25.06.2015.
  */
-public interface PositioningDelegate {
+public abstract class PositioningDelegate {
 
-    boolean moveXPanelLeft(SystemInformation systemInformation);
+    abstract boolean moveXPanelLeft(SystemInformation systemInformation);
 
-    boolean moveXPanelRight(SystemInformation systemInformation);
+    abstract boolean moveXPanelRight(SystemInformation systemInformation);
 
-    boolean moveYPanelUp(SystemInformation systemInformation);
+    abstract boolean moveXPanelFarRight(SystemInformation systemInformation);
 
-    boolean moveYPanelDown(SystemInformation systemInformation);
+    abstract boolean moveXPanelFarLeft(SystemInformation systemInformation);
 
+    abstract boolean moveYPanelUp(SystemInformation systemInformation);
 
+    abstract boolean moveYPanelDown(SystemInformation systemInformation);
+
+    abstract boolean centerYPanel(SystemInformation systemInformation);
+
+    /**
+     * @return the max amount of steps to use with calibration
+     */
+    abstract int calibrationStepRange();
+
+    /**
+     * @return the amount of calibration takes to make
+     */
+    int calibrationTakes() {
+        return 3;
+    }
 }

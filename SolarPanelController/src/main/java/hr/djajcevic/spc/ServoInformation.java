@@ -18,5 +18,10 @@ public class ServoInformation {
      */
     private int yServoPosition;
 
+    /**
+     * X axis servo motor North position
+     */
+    private int xNorthPosition;
+
 
 }

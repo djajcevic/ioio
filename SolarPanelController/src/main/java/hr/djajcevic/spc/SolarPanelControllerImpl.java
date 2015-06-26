@@ -1,5 +1,8 @@
 package hr.djajcevic.spc;
 
+import hr.djajcevic.spc.calculator.SunPositionCalculator;
+import hr.djajcevic.spc.calculator.SunPositionData;
+
 /**
  * @author djajcevic | 24.06.2015.
  */
@@ -28,7 +31,9 @@ public class SolarPanelControllerImpl implements SolarPanelController {
 
         if (false == systemCheckedAndRepositioned) return;
 
-        parkSystem();
+        calibrateSystem();
+
+        findNorth();
 
         systemCheckedAndRepositioned = true;
 
@@ -49,23 +54,73 @@ public class SolarPanelControllerImpl implements SolarPanelController {
         return true;
     }
 
+    /**
+     * Make system perform symbol 8 movement after parking the system
+     */
+    private void calibrateSystem() {
+        // park system so we can now that system is at start position
+        parkSystem();
+
+        int moveByAmount = positioningDelegate.calibrationStepRange();
+
+        // move to calibration position
+        for (int i = 0; i < moveByAmount; i++) {
+            positioningDelegate.moveXPanelRight(systemInformation);
+        }
+
+        // do calibrate system
+        int times = positioningDelegate.calibrationTakes();
+        do {
+            for (int i = 0; i < moveByAmount; i++) {
+                positioningDelegate.moveXPanelLeft(systemInformation);
+                positioningDelegate.moveYPanelUp(systemInformation);
+            }
+
+            for (int i = 0; i < moveByAmount; i++) {
+                positioningDelegate.moveYPanelDown(systemInformation);
+                positioningDelegate.moveXPanelRight(systemInformation);
+            }
+
+            times--;
+        } while (times > 0);
+
+        // return to start position
+        parkSystem();
+    }
+
+    /**
+     * Moves panel by X axis far right and far left. <br />
+     * Positioning delegate is responsible for recording panels North position
+     * and providing that data through SystemInformation
+     */
+    public void findNorth() {
+        positioningDelegate.moveXPanelFarRight(systemInformation);
+        positioningDelegate.moveXPanelFarLeft(systemInformation);
+    }
+
     @Override
     public void parkSystem() {
-        boolean reachedTarget = false;
-        do {
-            positioningDelegate.moveXPanelLeft(systemInformation);
-        } while (systemInformation.isParkedX());
-
-        do {
-            positioningDelegate.moveXPanelLeft(systemInformation);
-        } while (systemInformation.isParkedY());
-
+        positioningDelegate.moveXPanelFarLeft(systemInformation);
+        positioningDelegate.centerYPanel(systemInformation);
         systemInformation.setParked(true);
     }
 
     @Override
     public void doPosition() {
+        final SunPositionData spa = new SunPositionData();
+        spa.delta_ut1 = 0;
+        spa.delta_t = 67;
+//        spa.latitude = 45.837;
+//        spa.longitude = 16.0389;
+        spa.latitude = systemInformation.getLatitude();
+        spa.longitude = systemInformation.getLongitude();
+//        spa.elevation = 150;
+//        spa.pressure = 820;
+        spa.elevation = systemInformation.getElevation();
+        spa.pressure = systemInformation.getPressure();
+        SunPositionCalculator.calculateSunPosition(spa);
 
+//        spa.azimuth
     }
 
     @Override
