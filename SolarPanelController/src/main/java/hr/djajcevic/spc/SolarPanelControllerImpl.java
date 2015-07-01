@@ -2,11 +2,14 @@ package hr.djajcevic.spc;
 
 import hr.djajcevic.spc.calculator.SunPositionCalculator;
 import hr.djajcevic.spc.calculator.SunPositionData;
+import ioio.lib.api.IOIO;
+import ioio.lib.api.exception.ConnectionLostException;
+import ioio.lib.util.IOIOLooper;
 
 /**
  * @author djajcevic | 24.06.2015.
  */
-public class SolarPanelControllerImpl implements SolarPanelController {
+public class SolarPanelControllerImpl implements SolarPanelController, IOIOLooper {
 
     private SystemInformation systemInformation;
 
@@ -21,10 +24,13 @@ public class SolarPanelControllerImpl implements SolarPanelController {
 
     public SolarPanelControllerImpl(final PositioningDelegate positioningDelegate) {
         this.positioningDelegate = positioningDelegate;
+        systemInformation = new SystemInformation();
     }
 
     @Override
     public void checkSystem() {
+        systemCheckedAndRepositioned = false;
+
         boolean proceed = checkSystemInformation();
 
         if (false == proceed) return;
@@ -107,6 +113,14 @@ public class SolarPanelControllerImpl implements SolarPanelController {
 
     @Override
     public void doPosition() {
+
+        checkSystem();
+
+        if (systemCheckedAndRepositioned == false) {
+            System.err.println("System not checked or repositioned");
+            return;
+        }
+
         final SunPositionData spa = new SunPositionData();
         spa.delta_ut1 = 0;
         spa.delta_t = 67;
@@ -134,5 +148,32 @@ public class SolarPanelControllerImpl implements SolarPanelController {
 
     public void setPositioningListener(final PositioningListener positioningListener) {
         this.positioningListener = positioningListener;
+    }
+
+    @Override
+    public void setup(final IOIO ioio) throws ConnectionLostException, InterruptedException {
+        positioningDelegate.setup(ioio);
+    }
+
+    @Override
+    public void loop() throws ConnectionLostException, InterruptedException {
+        doPosition();
+
+        Thread.sleep(1000); // let other do their stuff
+    }
+
+    @Override
+    public void disconnected() {
+
+    }
+
+    @Override
+    public void incompatible() {
+
+    }
+
+    @Override
+    public void incompatible(final IOIO ioio) {
+
     }
 }

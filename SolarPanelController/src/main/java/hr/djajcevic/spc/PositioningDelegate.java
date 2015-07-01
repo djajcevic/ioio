@@ -1,5 +1,8 @@
 package hr.djajcevic.spc;
 
+import ioio.lib.api.IOIO;
+import ioio.lib.api.exception.ConnectionLostException;
+
 /**
  * @author djajcevic | 25.06.2015.
  */
@@ -30,4 +33,6 @@ public abstract class PositioningDelegate {
     int calibrationTakes() {
         return 3;
     }
+
+    abstract void setup(final IOIO ioio) throws ConnectionLostException, InterruptedException;
 }

@@ -13,4 +13,6 @@ dependencies {
 
 
     compile 'org.projectlombok:lombok:1.12.4'
+
+    compile project(':iOIOLibPC')
 }
