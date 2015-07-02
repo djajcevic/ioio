@@ -29,13 +29,11 @@ public class SolarPanelControllerImpl implements SolarPanelController, IOIOLoope
 
     @Override
     public void checkSystem() {
-        systemCheckedAndRepositioned = false;
-
         boolean proceed = checkSystemInformation();
 
         if (false == proceed) return;
 
-        if (false == systemCheckedAndRepositioned) return;
+        if (true == systemCheckedAndRepositioned) return;
 
         calibrateSystem();
 
@@ -64,17 +62,20 @@ public class SolarPanelControllerImpl implements SolarPanelController, IOIOLoope
      * Make system perform symbol 8 movement after parking the system
      */
     private void calibrateSystem() {
+        System.out.println("Calibrating");
         // park system so we can now that system is at start position
         parkSystem();
 
         int moveByAmount = positioningDelegate.calibrationStepRange();
 
         // move to calibration position
+        System.out.println("Move to calibrating position");
         for (int i = 0; i < moveByAmount; i++) {
             positioningDelegate.moveXPanelRight(systemInformation);
         }
 
         // do calibrate system
+        System.out.println("Performing calibration");
         int times = positioningDelegate.calibrationTakes();
         do {
             for (int i = 0; i < moveByAmount; i++) {
@@ -100,13 +101,19 @@ public class SolarPanelControllerImpl implements SolarPanelController, IOIOLoope
      * and providing that data through SystemInformation
      */
     public void findNorth() {
+        System.out.println("Finding North");
+        System.out.println("moveXPanelFarRight");
         positioningDelegate.moveXPanelFarRight(systemInformation);
+        System.out.println("moveXPanelFarLeft");
         positioningDelegate.moveXPanelFarLeft(systemInformation);
     }
 
     @Override
     public void parkSystem() {
+        System.out.println("Parking system");
+        System.out.println("moveXPanelFarLeft");
         positioningDelegate.moveXPanelFarLeft(systemInformation);
+        System.out.println("centerYPanel");
         positioningDelegate.centerYPanel(systemInformation);
         systemInformation.setParked(true);
     }
@@ -124,15 +131,14 @@ public class SolarPanelControllerImpl implements SolarPanelController, IOIOLoope
         final SunPositionData spa = new SunPositionData();
         spa.delta_ut1 = 0;
         spa.delta_t = 67;
-//        spa.latitude = 45.837;
-//        spa.longitude = 16.0389;
         spa.latitude = systemInformation.getLatitude();
         spa.longitude = systemInformation.getLongitude();
-//        spa.elevation = 150;
-//        spa.pressure = 820;
         spa.elevation = systemInformation.getElevation();
         spa.pressure = systemInformation.getPressure();
         SunPositionCalculator.calculateSunPosition(spa);
+
+        systemInformation.setTargetAzimut(spa.azimuth);
+        systemInformation.setTargetHeight(spa.zenith);
 
 //        spa.azimuth
     }
@@ -157,9 +163,23 @@ public class SolarPanelControllerImpl implements SolarPanelController, IOIOLoope
 
     @Override
     public void loop() throws ConnectionLostException, InterruptedException {
+        systemInformation.setLatitude(45.837);
+        systemInformation.setLongitude(16.0389);
+        systemInformation.setGpsAvailable(true);
+
+        systemInformation.setElevation(150);
+        systemInformation.setPressure(820);
+
+
+        systemInformation.setCompassAvailable(true);
+
+        systemInformation.setXServoAvailable(true);
+        systemInformation.setYServoAvailable(true);
+
+        System.out.println("Repositioning");
         doPosition();
 
-        Thread.sleep(1000); // let other do their stuff
+        Thread.sleep(2000); // let other do their stuff
     }
 
     @Override

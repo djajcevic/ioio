@@ -22,32 +22,51 @@ public class AxisLooper extends BaseIOIOLooper {
     @NonNull
     private Axis axis;
 
-    private int stepsToMoveLeft;
+    private int step = 0;
+    private int maxStep = 50;
+
+    private boolean atSomewhere = true, atEnd = false, atStart = false;
 
     @Override
     protected void setup() throws ConnectionLostException, InterruptedException {
         switch (axis) {
             case X:
                 // create x digital outputs
+                // check if at start or end
                 break;
             case Y:
                 // create y digital outputs
+                // check if at start or end
                 break;
         }
     }
 
     @Override
     public void loop() throws ConnectionLostException, InterruptedException {
-//        while (stepsToMoveLeft == 0) {
+//        while (step == 0) {
 //            Thread.sleep(20);
 //        }
     }
 
     public void moveLeft() {
-        System.out.println(axis + ": moving by one step left");
+        if (step == 0) {
+            atStart = true;
+            atEnd = false;
+            return;
+        }
+//        atStart = false;
+        step--;
+        System.out.println(axis + ":" + step);
     }
 
     public void moveRight() {
-        System.out.println(axis + ": moving by one step right");
+        if (step == maxStep) {
+            atEnd = true;
+            atStart = false;
+            return;
+        }
+//        atEnd = false;
+        step++;
+        System.out.println(axis + ":" + step);
     }
 }

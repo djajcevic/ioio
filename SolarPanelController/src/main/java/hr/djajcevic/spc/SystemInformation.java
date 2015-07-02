@@ -86,7 +86,7 @@ public class SystemInformation {
     /**
      * Panel information
      */
-    ServoInformation servoInformation;
+    ServoInformation servoInformation = new ServoInformation();
 
 
 }

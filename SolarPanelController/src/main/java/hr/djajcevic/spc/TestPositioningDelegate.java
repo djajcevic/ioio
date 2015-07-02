@@ -22,28 +22,39 @@ public class TestPositioningDelegate extends PositioningDelegate {
     @Override
     boolean moveXPanelLeft(final SystemInformation systemInformation) {
         axisXLooper.moveLeft();
+        systemInformation.getServoInformation().setXServoPosition(axisXLooper.getStep());
         return false;
     }
 
     @Override
     boolean moveXPanelRight(final SystemInformation systemInformation) {
         axisXLooper.moveRight();
+        systemInformation.getServoInformation().setXServoPosition(axisXLooper.getStep());
         return false;
     }
 
     @Override
     boolean moveXPanelFarRight(final SystemInformation systemInformation) {
+        while (!axisXLooper.isAtEnd()) {
+            axisXLooper.moveRight();
+        }
+        systemInformation.getServoInformation().setXServoPosition(axisXLooper.getStep());
         return false;
     }
 
     @Override
     boolean moveXPanelFarLeft(final SystemInformation systemInformation) {
+        while (!axisXLooper.isAtStart()) {
+            axisXLooper.moveLeft();
+        }
+        systemInformation.getServoInformation().setXServoPosition(axisXLooper.getStep());
         return false;
     }
 
     @Override
     boolean moveYPanelUp(final SystemInformation systemInformation) {
         axisYLooper.moveLeft();
+        systemInformation.getServoInformation().setYServoPosition(axisYLooper.getStep());
         return false;
     }
 
@@ -54,11 +65,27 @@ public class TestPositioningDelegate extends PositioningDelegate {
 
     @Override
     boolean centerYPanel(final SystemInformation systemInformation) {
+        int halfStep = axisYLooper.getMaxStep() / 2;
+        int step = axisYLooper.getStep();
+
+        if (axisYLooper.isAtEnd() || step > halfStep) {
+            while (step > halfStep && !axisXLooper.isAtEnd()) {
+                step = axisYLooper.getStep();
+                axisYLooper.moveLeft();
+            }
+        }
+        if (axisYLooper.isAtStart() || step < halfStep) {
+            while (step < halfStep) {
+                step = axisYLooper.getStep();
+                axisYLooper.moveRight();
+            }
+        }
+        systemInformation.getServoInformation().setYServoPosition(step);
         return false;
     }
 
     @Override
     int calibrationStepRange() {
-        return 0;
+        return 3;
     }
 }
