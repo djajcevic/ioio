@@ -35,4 +35,6 @@ public abstract class PositioningDelegate {
     }
 
     abstract void setup(final IOIO ioio) throws ConnectionLostException, InterruptedException;
+
+    abstract boolean systemSleeping();
 }

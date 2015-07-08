@@ -21,6 +21,7 @@ public class SolarPanelControllerImpl implements SolarPanelController, IOIOLoope
      * Flag that indicates if system has been initially checked and panel is parked.
      */
     private boolean systemCheckedAndRepositioned = false;
+    private boolean systemSleeping = true;
 
     public SolarPanelControllerImpl(final PositioningDelegate positioningDelegate) {
         this.positioningDelegate = positioningDelegate;
@@ -29,6 +30,11 @@ public class SolarPanelControllerImpl implements SolarPanelController, IOIOLoope
 
     @Override
     public void checkSystem() {
+        systemSleeping = positioningDelegate.systemSleeping();
+        if (systemSleeping) {
+            return;
+        }
+
         boolean proceed = checkSystemInformation();
 
         if (false == proceed) return;
@@ -122,6 +128,10 @@ public class SolarPanelControllerImpl implements SolarPanelController, IOIOLoope
     public void doPosition() {
 
         checkSystem();
+
+        if (systemSleeping) {
+            System.out.println("System at sleep");
+        }
 
         if (systemCheckedAndRepositioned == false) {
             System.err.println("System not checked or repositioned");

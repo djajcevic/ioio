@@ -8,7 +8,6 @@ import ioio.lib.util.pc.IOIOConsoleApp;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.Date;
 
 /**
  * @author djajcevic | 03.05.2015.
@@ -22,7 +21,8 @@ public class TestApp2 extends IOIOConsoleApp {
     private PwmOutput pwmOutput;
 
     static {
-        System.setProperty("ioio.SerialPorts", "/dev/tty.usbmodem1421");
+//        System.setProperty("ioio.SerialPorts", "/dev/tty.usbmodem1421");
+        System.setProperty("ioio.SerialPorts", "/dev/tty.usbmodem1411");
     }
 
     @Override
@@ -31,9 +31,9 @@ public class TestApp2 extends IOIOConsoleApp {
                 System.in));
         boolean abort = false;
         String line;
-        while (!abort && (line = reader.readLine()) != null) {
-            System.out.println("Waiting input");
-            abort = line.equals("q!");
+        while (true) {
+//            System.out.println("Waiting input");
+//            abort = line.equals("q!");
         }
     }
 
@@ -43,15 +43,9 @@ public class TestApp2 extends IOIOConsoleApp {
     }
 
     private void doYourStuff() throws ConnectionLostException, InterruptedException {
-        System.out.println(new Date() + ": " + firstLedOn);
-//        pin1.write(firstLedOn);
-        firstLedOn = !firstLedOn;
         statLed.write(false);
-        pwmOutput.setPulseWidth(10);
         Thread.sleep(1000);
-        pwmOutput.setPulseWidth(0);
         statLed.write(true);
-        Thread.sleep(1000);
     }
 
     public static void main(String[] args) throws Exception {
