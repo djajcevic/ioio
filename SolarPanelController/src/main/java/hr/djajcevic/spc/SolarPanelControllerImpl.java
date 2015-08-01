@@ -7,6 +7,7 @@ import ioio.lib.api.exception.ConnectionLostException;
 import ioio.lib.util.IOIOLooper;
 
 /**
+ * TODO: meki start i meki stop
  * @author djajcevic | 24.06.2015.
  */
 public class SolarPanelControllerImpl implements SolarPanelController, IOIOLooper {

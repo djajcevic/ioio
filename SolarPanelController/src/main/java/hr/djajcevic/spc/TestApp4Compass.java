@@ -47,10 +47,14 @@ public class TestApp4Compass extends IOIOConsoleApp {
 
                 twiMaster = ioio_.openTwiMaster(2, TwiMaster.Rate.RATE_100KHz, false);
                 byte[] readData = new byte[6];
-                twiMaster.writeRead(1, false, new byte[]{0x60}, 1, readData, 6);
+
+                // set scale to gauss = 1.3 (register value = 1, scale = 0.92)
+                twiMaster.writeRead(0x1E, false, new byte[]{0x01, 0x01}, 2, readData, 6);
                 System.out.println(Arrays.toString(readData));
                 readData = new byte[6];
-                twiMaster.writeRead(2, false, new byte[]{0x02}, 1, readData, 6);
+
+                // set CONTINIOUS mode
+                twiMaster.writeRead(0x1E, false, new byte[]{0x02, 0x00}, 2, readData, 6);
                 System.out.println(Arrays.toString(readData));
             }
 
@@ -72,14 +76,31 @@ public class TestApp4Compass extends IOIOConsoleApp {
 
     private void doYourStuff() throws ConnectionLostException, InterruptedException, IOException {
 
+        System.out.println("---------------------------------------------");
         byte[] readData = new byte[6];
-//        twiMaster.writeRead(30, false, new byte[]{0x03}, 1, readData, readData.length);
-        twiMaster.writeRead(30, false, null, 0, readData, readData.length);
+        System.out.println("Reading data...");
+        twiMaster.writeRead(0x1E, false, new byte[]{0x03}, 1, readData, readData.length);
+        System.out.println("Read data: " + Arrays.toString(readData));
         int[] rawData = new int[3];
         rawData[0] = (readData[0] << 8) | readData[1];
         rawData[1] = (readData[2] << 8) | readData[3];
         rawData[2] = (readData[4] << 8) | readData[5];
-        System.out.println(Arrays.toString(rawData));
+
+        double[] scaledData = new double[3];
+        scaledData[0] = rawData[0] * 0.92;
+        scaledData[1] = rawData[1] * 0.92;
+        scaledData[2] = rawData[2] * 0.92;
+
+        System.out.println("Raw data: " + Arrays.toString(rawData));
+        System.out.println("Scaled data: " + Arrays.toString(scaledData));
+
+        double heading = Math.atan2(scaledData[2], scaledData[0]);
+        if (heading < 0)
+            heading += 2 * Math.PI;
+        if (heading > 2 * Math.PI)
+            heading -= 2 * Math.PI;
+        double headingDegrees = heading * 180 / Math.PI;
+        System.out.println("Heading: " + heading + "rad, " + headingDegrees + "deg");
 
 
         Thread.sleep(50);

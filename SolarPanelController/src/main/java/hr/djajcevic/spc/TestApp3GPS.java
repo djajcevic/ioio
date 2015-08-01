@@ -16,7 +16,7 @@ public class TestApp3GPS extends IOIOConsoleApp {
 
 
     static {
-        System.setProperty("ioio.SerialPorts", "/dev/tty.usbmodem1421");
+        System.setProperty("ioio.SerialPorts", "/dev/tty.usbmodem1411");
 //        System.setProperty("ioio.SerialPorts", "/dev/tty.usbmodem1411");
     }
 
