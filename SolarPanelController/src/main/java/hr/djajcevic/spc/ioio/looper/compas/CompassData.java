@@ -3,6 +3,10 @@ package hr.djajcevic.spc.ioio.looper.compas;
 /**
  * @author djajcevic | 11.08.2015.
  */
+
+import lombok.Data;
+
+@Data
 public class CompassData {
 
     private Double x;
@@ -22,54 +26,4 @@ public class CompassData {
         this.headingDegrees = headingDegrees;
     }
 
-    public Double getX() {
-        return x;
-    }
-
-    public void setX(final Double x) {
-        this.x = x;
-    }
-
-    public Double getY() {
-        return y;
-    }
-
-    public void setY(final Double y) {
-        this.y = y;
-    }
-
-    public Double getZ() {
-        return z;
-    }
-
-    public void setZ(final Double z) {
-        this.z = z;
-    }
-
-    public Double getHeading() {
-        return heading;
-    }
-
-    public void setHeading(final Double heading) {
-        this.heading = heading;
-    }
-
-    public Double getHeadingDegrees() {
-        return headingDegrees;
-    }
-
-    public void setHeadingDegrees(final Double headingDegrees) {
-        this.headingDegrees = headingDegrees;
-    }
-
-    @Override
-    public String toString() {
-        return "CompassData{" +
-                "x=" + x +
-                ", y=" + y +
-                ", z=" + z +
-                ", heading=" + heading +
-                ", headingDegrees=" + headingDegrees +
-                '}';
-    }
 }
