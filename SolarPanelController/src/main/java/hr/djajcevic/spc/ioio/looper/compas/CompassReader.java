@@ -1,5 +1,6 @@
 package hr.djajcevic.spc.ioio.looper.compas;
 
+import hr.djajcevic.spc.ioio.looper.IOIOReader;
 import hr.djajcevic.spc.ioio.looper.exception.UnInitializedException;
 import hr.djajcevic.spc.util.Configuration;
 import ioio.lib.api.IOIO;
@@ -9,7 +10,7 @@ import ioio.lib.api.exception.ConnectionLostException;
 /**
  * @author djajcevic | 11.08.2015.
  */
-public class CompassReader {
+public class CompassReader implements IOIOReader {
 
     public static final int SENSOR_ADDRESS = 0x1E;
     public static final byte[] SCALE_CONFIGURATION_DATA = new byte[]{0x01, 0x01};
@@ -28,6 +29,7 @@ public class CompassReader {
         this.delegate = delegate;
     }
 
+    @Override
     public void initialize() throws ConnectionLostException, InterruptedException {
         final int compassPin = Configuration.getConfigInt("compass.pin");
 
@@ -44,6 +46,7 @@ public class CompassReader {
         initialized = true;
     }
 
+    @Override
     public void readData() throws ConnectionLostException, InterruptedException {
         if (!initialized) {
             throw new UnInitializedException("CompassReader not initialized!");

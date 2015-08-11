@@ -50,7 +50,7 @@ public class AxisController {
 
     public void initialize() throws ConnectionLostException {
         loadConfiguration();
-        initializeIOIOPins(ioio);
+        initializeIOIOPins();
 
         initialized = true;
     }
@@ -65,7 +65,7 @@ public class AxisController {
         stepIndicatorPin = Configuration.getConfigInt("servo." + axis + ".pin.stepIndicator");
     }
 
-    private void initializeIOIOPins(final IOIO ioio) throws ConnectionLostException {
+    private void initializeIOIOPins() throws ConnectionLostException {
         checkAndClosePins(controlPinOutput, directionPinOutput, startPositionIndicatorPinInput, endPositionIndicatorPinInput, stepIndicatorPinInput);
         controlPinOutput = ioio.openPwmOutput(controlPin, servoFreq);
         directionPinOutput = ioio.openDigitalOutput(directionPin);
@@ -198,6 +198,18 @@ public class AxisController {
 
         boolean shouldStop(final boolean positiveDirection, int currentStep);
 
+    }
+
+    public int getCurrentStep() {
+        return currentStep;
+    }
+
+    public boolean isAtStart() {
+        return atStart;
+    }
+
+    public boolean isAtEnd() {
+        return atEnd;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package hr.djajcevic.spc.ioio.looper.gps;
 
+import hr.djajcevic.spc.ioio.looper.IOIOReader;
 import hr.djajcevic.spc.ioio.looper.exception.UnInitializedException;
 import hr.djajcevic.spc.util.Configuration;
 import ioio.lib.api.IOIO;
@@ -15,7 +16,7 @@ import static hr.djajcevic.spc.ioio.looper.Util.safeNumberValue;
 /**
  * @author djajcevic | 11.08.2015.
  */
-public class GPSReader {
+public class GPSReader implements IOIOReader {
 
     private Delegate delegate;
     private IOIO ioio;
@@ -31,6 +32,7 @@ public class GPSReader {
         this.delegate = delegate;
     }
 
+    @Override
     public void readData() throws ConnectionLostException, IOException {
         if (!initialized) {
             throw new UnInitializedException("GPSReader not initialized!");
@@ -88,6 +90,7 @@ public class GPSReader {
         return data;
     }
 
+    @Override
     public void initialize() throws ConnectionLostException {
         if (initialized) {
             uartInput.close();
@@ -103,7 +106,7 @@ public class GPSReader {
         initialized = true;
     }
 
-    interface Delegate {
+    public interface Delegate {
 
         void positionLocked(GPSData data);
 
