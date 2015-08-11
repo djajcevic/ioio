@@ -25,8 +25,6 @@ public class GPSReader {
 
     private InputStream gpsDataInputStream;
     private OutputStream gpsDataOutputStream;
-    private int gpsPin;
-    private int gpsFreq;
 
     public GPSReader(final IOIO ioio, final Delegate delegate) {
         this.ioio = ioio;
@@ -95,8 +93,8 @@ public class GPSReader {
             uartInput.close();
             initialized = false;
         }
-        gpsPin = Configuration.getConfigInt("gps.pin");
-        gpsFreq = Configuration.getConfigInt("gps.freq");
+        final int gpsPin = Configuration.getConfigInt("gps.pin");
+        final int gpsFreq = Configuration.getConfigInt("gps.freq");
 
         uartInput = ioio.openUart(gpsPin, IOIO.INVALID_PIN, gpsFreq, Uart.Parity.NONE, Uart.StopBits.ONE);
         gpsDataInputStream = uartInput.getInputStream();

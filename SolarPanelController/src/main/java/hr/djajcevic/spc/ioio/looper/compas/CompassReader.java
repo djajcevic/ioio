@@ -15,6 +15,7 @@ public class CompassReader {
     public static final byte[] SCALE_CONFIGURATION_DATA = new byte[]{0x01, 0x01};
     public static final byte[] CONTINIOUS_MODE_DATA = new byte[]{0x02, 0x00};
     public static final byte[] READ_SENSOR_DATA = new byte[]{0x03};
+    public static final double COMPASS_SCALE = 0.92;
 
     private Delegate delegate;
     private IOIO ioio;
@@ -22,15 +23,13 @@ public class CompassReader {
     private TwiMaster twiMaster;
     private boolean initialized;
 
-    private int compassPin;
-
     public CompassReader(final IOIO ioio, final Delegate delegate) {
         this.ioio = ioio;
         this.delegate = delegate;
     }
 
     public void initialize() throws ConnectionLostException, InterruptedException {
-        compassPin = Configuration.getConfigInt("compass.pin");
+        final int compassPin = Configuration.getConfigInt("compass.pin");
 
         twiMaster = ioio.openTwiMaster(compassPin, TwiMaster.Rate.RATE_100KHz, false);
         byte[] readData = new byte[6];
@@ -62,9 +61,9 @@ public class CompassReader {
         rawData[2] = (readData[4] << 8) | readData[5];
 
         double[] scaledData = new double[3];
-        scaledData[0] = rawData[0] * 0.92;
-        scaledData[1] = rawData[1] * 0.92;
-        scaledData[2] = rawData[2] * 0.92;
+        scaledData[0] = rawData[0] * COMPASS_SCALE;
+        scaledData[1] = rawData[1] * COMPASS_SCALE;
+        scaledData[2] = rawData[2] * COMPASS_SCALE;
 
 //        System.out.println("Raw data: " + Arrays.toString(rawData));
 //        System.out.println("Scaled data: " + Arrays.toString(scaledData));
