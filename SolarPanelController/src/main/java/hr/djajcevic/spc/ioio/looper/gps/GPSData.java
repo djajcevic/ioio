@@ -3,6 +3,7 @@ package hr.djajcevic.spc.ioio.looper.gps;
 import lombok.Data;
 
 import java.util.Calendar;
+import java.util.Date;
 
 /**
  * @author djajcevic | 11.08.2015.
@@ -18,8 +19,8 @@ public class GPSData {
     private Long numberOfSatellites;
     private Double altitude;
 
-    public Calendar getTime() {
-        return time;
+    public Date getTimeAsDate() {
+        return time.getTime();
     }
 
 }

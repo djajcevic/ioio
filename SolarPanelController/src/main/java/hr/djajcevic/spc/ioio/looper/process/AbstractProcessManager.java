@@ -7,9 +7,9 @@ import lombok.Data;
  * @author djajcevic | 11.08.2015.
  */
 @Data
-public abstract class AbstractManager {
+public abstract class AbstractProcessManager {
 
-    ManagerRepository managerRepository;
+    SystemManager managerRepository;
 
     public abstract void initialize() throws ConnectionLostException, InterruptedException;
 

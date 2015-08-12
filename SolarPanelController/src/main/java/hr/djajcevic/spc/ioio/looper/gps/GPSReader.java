@@ -46,7 +46,7 @@ public class GPSReader implements IOIOReader {
             String result = null;
 
             while ((result = reader.readLine()) != null) {
-                System.out.println(result);
+//                System.out.println(result);
                 if (!result.startsWith("$GPGGA")) {
                     continue;
                 }

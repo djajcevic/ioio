@@ -1,20 +1,17 @@
 package hr.djajcevic.spc.ioio.looper.process;
 
 import hr.djajcevic.spc.ioio.looper.AxisController;
-import hr.djajcevic.spc.ioio.looper.compas.CompassData;
 import hr.djajcevic.spc.ioio.looper.compas.CompassReader;
-import hr.djajcevic.spc.ioio.looper.gps.GPSData;
 import hr.djajcevic.spc.ioio.looper.gps.GPSReader;
+import hr.djajcevic.spc.util.Configuration;
 import ioio.lib.api.exception.ConnectionLostException;
-import lombok.Data;
 
 import java.io.IOException;
 
 /**
  * @author djajcevic | 11.08.2015.
  */
-@Data
-public class CalibrationManager extends AbstractManager implements GPSReader.Delegate, CompassReader.Delegate {
+public class CalibrationProcessManager extends AbstractProcessManager {
 
     private AxisController xAxisController;
     private AxisController yAxisController;
@@ -26,11 +23,8 @@ public class CalibrationManager extends AbstractManager implements GPSReader.Del
     public void initialize() throws ConnectionLostException, InterruptedException {
         xAxisController = managerRepository.getXAxisController();
         yAxisController = managerRepository.getYAxisController();
-        gpsReader = new GPSReader(managerRepository.getIoio(), this);
-        compassReader = new CompassReader(managerRepository.getIoio(), this);
-
-        gpsReader.initialize();
-        compassReader.initialize();
+        gpsReader = managerRepository.getGpsReader();
+        compassReader = managerRepository.getCompassReader();
     }
 
     @Override
@@ -44,21 +38,17 @@ public class CalibrationManager extends AbstractManager implements GPSReader.Del
         // 30 degrees up
         yAxisController.move(true, 30);
 
+        Configuration.saveCurrentXStep(xAxisController.getCurrentStep());
+        Configuration.saveCurrentYStep(yAxisController.getCurrentStep());
+
         try {
             gpsReader.readData();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        Configuration.saveGPSData(managerRepository.getGpsData());
         compassReader.readData();
+        Configuration.saveCompassData(managerRepository.getCompassData());
     }
 
-    @Override
-    public void positionLocked(final GPSData data) {
-        managerRepository.setGpsData(data);
-    }
-
-    @Override
-    public void dataReady(final CompassData data) {
-        managerRepository.setCompassData(data);
-    }
 }

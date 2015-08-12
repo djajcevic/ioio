@@ -1,33 +1,34 @@
 package hr.djajcevic.spc.ioio.looper.process;
 
+import hr.djajcevic.spc.calculator.SunPositionData;
 import hr.djajcevic.spc.ioio.looper.AxisController;
+import hr.djajcevic.spc.util.Configuration;
 import ioio.lib.api.exception.ConnectionLostException;
-import lombok.Data;
 
 /**
  * @author djajcevic | 11.08.2015.
  */
-@Data
-public class PositioningManager extends AbstractManager {
+public class PositioningProcessManager extends AbstractProcessManager {
 
     private AxisController xAxisController;
     private AxisController yAxisController;
+
+    private SunPositionData sunPositionData;
 
     @Override
     public void initialize() throws ConnectionLostException {
         xAxisController = managerRepository.getXAxisController();
         yAxisController = managerRepository.getYAxisController();
+        sunPositionData = managerRepository.getSunPositionData();
     }
 
     @Override
     public void performManagementActions() throws ConnectionLostException, InterruptedException {
         // 30 degrees left
-        xAxisController.move(false, 30);
+        xAxisController.move(false);
+        Configuration.saveCurrentXStep(xAxisController.getCurrentStep());
         // 30 degrees down
-        yAxisController.move(false, 30);
-        // 30 degrees right
-        xAxisController.move(true, 30);
-        // 30 degrees up
-        yAxisController.move(true, 30);
+        yAxisController.move(false);
+        Configuration.saveCurrentYStep(yAxisController.getCurrentStep());
     }
 }

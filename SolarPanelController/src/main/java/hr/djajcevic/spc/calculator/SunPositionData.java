@@ -87,6 +87,8 @@ public class SunPositionData {
         this.minute = calendar.get(Calendar.MINUTE);
         this.second = calendar.get(Calendar.SECOND);
         this.timezone = dstSavings;
+        this.delta_ut1 = 0;
+        this.delta_t = 67;
     }
 
 

@@ -1,6 +1,8 @@
 package hr.djajcevic.spc.ioio.looper;
 
 import hr.djajcevic.spc.ioio.looper.exception.InvalidPanelStateException;
+import hr.djajcevic.spc.ioio.looper.exception.PanelReachedEndPosition;
+import hr.djajcevic.spc.ioio.looper.exception.PanelReachedStartPosition;
 import hr.djajcevic.spc.ioio.looper.exception.ServoMotorUnavailableException;
 import hr.djajcevic.spc.util.Configuration;
 import ioio.lib.api.*;
@@ -83,7 +85,7 @@ public class AxisController {
     }
 
     public void move(boolean positiveDirection, int steps) throws ConnectionLostException, InterruptedException {
-        System.out.println("Initialized movement in " + (positiveDirection ? "positive" : "negative") + " direction with " + steps + " step target");
+        System.out.println("Initialized " + axis + " movement in " + (positiveDirection ? "positive" : "negative") + " direction with " + steps + " step target");
 
         if (!initialized) {
             throw new RuntimeException("Controller not initialized!");
@@ -94,12 +96,20 @@ public class AxisController {
         failedSteps = 0;
 
         for (int step = 0; step < steps; step++) {
-            performMovement(positiveDirection);
+            try {
+                performMovement(positiveDirection);
+            } catch (PanelReachedStartPosition e) {
+                delegate.reachedStartPosition();
+                break;
+            } catch (PanelReachedEndPosition e) {
+                delegate.reachedStartPosition();
+                break;
+            }
         }
     }
 
     public void move(boolean positiveDirection) throws ConnectionLostException, InterruptedException {
-        System.out.println("Initialized movement in " + (positiveDirection ? "positive" : "negative") + " direction");
+        System.out.println("Initialized " + axis + " movement in " + (positiveDirection ? "positive" : "negative") + " direction");
 
         if (!initialized) {
             throw new RuntimeException("Controller not initialized!");
@@ -110,7 +120,15 @@ public class AxisController {
         failedSteps = 0;
 
         while (!delegate.shouldStop(positiveDirection, currentStep)) {
-            if (!performMovement(positiveDirection)) {
+            try {
+                if (!performMovement(positiveDirection)) {
+                    break;
+                }
+            } catch (PanelReachedStartPosition e) {
+                delegate.reachedStartPosition();
+                break;
+            } catch (PanelReachedEndPosition e) {
+                delegate.reachedStartPosition();
                 break;
             }
         }
@@ -124,7 +142,7 @@ public class AxisController {
      * @throws ConnectionLostException
      * @throws InterruptedException
      */
-    private boolean performMovement(boolean positiveDirection) throws ConnectionLostException, InterruptedException {
+    private boolean performMovement(boolean positiveDirection) throws ConnectionLostException, InterruptedException, PanelReachedStartPosition, PanelReachedEndPosition {
         if (failedSteps == MAXIMUM_FAILED_STEPS) {
             throw new ServoMotorUnavailableException("Too many failed steps on " + this + " controller!");
         }
@@ -148,6 +166,14 @@ public class AxisController {
     }
 
     private boolean movementValid(final boolean positiveDirection) {
+        if (atStart && !positiveDirection) {
+            throw new PanelReachedStartPosition(axis);
+        }
+
+        if (atEnd && positiveDirection) {
+            throw new PanelReachedEndPosition(axis);
+        }
+
         if (atStart && positiveDirection) {
             return true;
         } else if (atEnd && !positiveDirection) {
@@ -171,10 +197,12 @@ public class AxisController {
             currentStep = 0;
             delegate.reachedStartPosition();
             atEnd = false;
+            throw new PanelReachedStartPosition(axis);
         } else if (atEnd) {
             currentStep = maxSteps;
             delegate.reachedEndPosition();
             atStart = false;
+            throw new PanelReachedEndPosition(axis);
         } else {
             if (currentStep == maxSteps) {
                 atEnd = true;
@@ -182,22 +210,6 @@ public class AxisController {
                 atStart = true;
             }
         }
-    }
-
-    public enum Axis {
-        X, Y
-    }
-
-    public interface Delegate {
-
-        void stepCompleted(int currentStep);
-
-        void reachedStartPosition();
-
-        void reachedEndPosition();
-
-        boolean shouldStop(final boolean positiveDirection, int currentStep);
-
     }
 
     public int getCurrentStep() {
@@ -228,5 +240,21 @@ public class AxisController {
                 ", atEnd=" + atEnd +
                 ", initialized=" + initialized +
                 '}';
+    }
+
+    public enum Axis {
+        X, Y
+    }
+
+    public interface Delegate {
+
+        void stepCompleted(int currentStep);
+
+        void reachedStartPosition();
+
+        void reachedEndPosition();
+
+        boolean shouldStop(final boolean positiveDirection, int currentStep);
+
     }
 }

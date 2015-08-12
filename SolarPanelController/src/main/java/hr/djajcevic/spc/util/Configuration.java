@@ -1,9 +1,9 @@
 package hr.djajcevic.spc.util;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import hr.djajcevic.spc.ioio.looper.compas.CompassData;
+import hr.djajcevic.spc.ioio.looper.gps.GPSData;
+
+import java.io.*;
 import java.net.URL;
 import java.util.Properties;
 
@@ -12,13 +12,28 @@ import java.util.Properties;
  */
 public class Configuration {
 
-    private static Properties properties;
+    public static final String GPS_LATITUDE = "gps.latitude";
+    public static final String GPS_LATITUDE_DIRECTION = "gps.latitude.direction";
+    public static final String GPS_LONGITUDE = "gps.longitude";
+    public static final String GPS_LONGITUDE_DIRECTION = "gps.longitude.direction";
+    public static final String GPS_ALTITUDE = "gps.altitude";
+    public static final String SERVO_X_CURRENT_STEP = "servo.X.currentStep";
+    public static final String SERVO_Y_CURRENT_STEP = "servo.Y.currentStep";
 
     private static final FileInputStream reader;
+    private static final File statusPropertiesFile;
     private static final FileOutputStream writer;
+    public static final String COMPASS_HEADING = "compass.heading";
+    public static final String COMPASS_HEADING_DEGREES = "compass.headingDegrees";
+    public static final String COMPASS_X = "compass.x";
+    public static final String COMPASS_Y = "compass.y";
+    public static final String COMPASS_Z = "compass.z";
+    private static Properties properties;
+    private static Properties statusProperties;
 
     static {
         properties = new Properties();
+        statusProperties = new Properties();
         try {
             String configurationFileName = "configuration.properties";
             String statusFileName = "status.properties";
@@ -30,13 +45,18 @@ public class Configuration {
             assert resourceLocation != null;
             String statusFilePath = resourceLocation.getFile() + statusFileName;
             File statusFile = new File(statusFilePath);
+            statusPropertiesFile = statusFile;
             if (!statusFile.exists()) {
                 statusFile.createNewFile();
             }
-            reader = new FileInputStream(configurationFilePath);
+            FileReader inStream = new FileReader(statusFile);
+            statusProperties.load(inStream);
 
+            reader = new FileInputStream(configurationFilePath);
             writer = new FileOutputStream(statusFile);
             properties.load(reader);
+
+
         } catch (IOException e) {
             throw new RuntimeException("configuration.properties could not be found", e);
         }
@@ -58,14 +78,95 @@ public class Configuration {
         return Float.parseFloat(getConfig(name));
     }
 
-    public static void saveStatus(String name, Object value) {
+    public static void setStatus(String name, Object value, final boolean save) {
         String string = value != null ? value.toString() : "";
-        properties.setProperty(name, string);
-        try {
-            properties.store(writer, null);
-        } catch (IOException e) {
-            throw new RuntimeException("Error while saving configuration '" + name + "' with value '" + value + "'");
+        statusProperties.setProperty(name, string);
+        if (save) {
+            storeStatusProperties();
         }
+    }
+
+    private static void storeStatusProperties() {
+        try {
+            statusProperties.store(new FileWriter(statusPropertiesFile, false), null);
+        } catch (IOException e) {
+            throw new RuntimeException("Error while saving status properties", e);
+        }
+    }
+
+    public static void saveCurrentXStep(int currentStep) {
+        setStatus(SERVO_X_CURRENT_STEP, "" + currentStep, true);
+    }
+
+    public static void saveCurrentYStep(int currentStep) {
+        setStatus(SERVO_Y_CURRENT_STEP, "" + currentStep, true);
+    }
+
+    public static void saveGPSData(GPSData data) {
+        setStatus(GPS_LATITUDE, "" + data.getLatitude(), false);
+        setStatus(GPS_LATITUDE_DIRECTION, "" + data.getLatitudeDirection(), false);
+        setStatus(GPS_LONGITUDE, "" + data.getLongitude(), false);
+        setStatus(GPS_LONGITUDE_DIRECTION, "" + data.getLongitudeDirection(), false);
+        setStatus(GPS_ALTITUDE, "" + data.getAltitude(), false);
+        storeStatusProperties();
+    }
+
+    public static void loadGPSData(GPSData data) {
+        data.setLatitude(getStatusDouble(GPS_LATITUDE));
+        data.setLatitudeDirection(getStatus(GPS_LATITUDE_DIRECTION));
+        data.setLongitude(getStatusDouble(GPS_LONGITUDE));
+        data.setLongitudeDirection(getStatus(GPS_LONGITUDE_DIRECTION));
+        data.setAltitude(getStatusDouble(GPS_ALTITUDE));
+        storeStatusProperties();
+    }
+
+    public static void saveCompassData(CompassData data) {
+        setStatus(COMPASS_HEADING, "" + data.getHeading(), false);
+        setStatus(COMPASS_HEADING_DEGREES, "" + data.getHeadingDegrees(), false);
+        setStatus(COMPASS_X, "" + data.getX(), false);
+        setStatus(COMPASS_Y, "" + data.getY(), false);
+        setStatus(COMPASS_Z, "" + data.getZ(), false);
+        storeStatusProperties();
+    }
+
+    public static void loadCompassData(CompassData data) {
+        data.setHeading(getStatusDouble(COMPASS_HEADING));
+        data.setHeadingDegrees(getStatusDouble(COMPASS_HEADING_DEGREES));
+        data.setX(getStatusDouble(COMPASS_X));
+        data.setY(getStatusDouble(COMPASS_Y));
+        data.setZ(getStatusDouble(COMPASS_Z));
+    }
+
+    public static boolean hasText(String value) {
+        return value != null && value.length() > 0;
+    }
+
+    public static String getStatus(String name) {
+        return statusProperties.getProperty(name);
+    }
+
+    public static Boolean getStatusBoolean(String name) {
+        String value = statusProperties.getProperty(name);
+        if (hasText(value)) {
+            return Boolean.valueOf(value);
+        }
+        return null;
+    }
+
+    public static Integer getStatusInteger(String name) {
+        String value = statusProperties.getProperty(name);
+        if (hasText(value)) {
+            return Integer.parseInt(value);
+        }
+        return null;
+    }
+
+    public static Double getStatusDouble(String name) {
+        String value = statusProperties.getProperty(name);
+        if (hasText(value)) {
+            return Double.parseDouble(value);
+        }
+        return null;
     }
 
 }
