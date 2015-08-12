@@ -7,6 +7,7 @@ import hr.djajcevic.spc.ioio.looper.compas.CompassData;
 import hr.djajcevic.spc.ioio.looper.compas.CompassReader;
 import hr.djajcevic.spc.ioio.looper.gps.GPSData;
 import hr.djajcevic.spc.ioio.looper.gps.GPSReader;
+import hr.djajcevic.spc.util.Configuration;
 import ioio.lib.api.IOIO;
 import ioio.lib.api.exception.ConnectionLostException;
 import ioio.lib.util.IOIOLooper;
@@ -38,7 +39,9 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
 
     private CalibrationProcessManager calibrationManager;
     private ParkingProcessManager parkingManager;
+    private PositioningProcessManager positioningManager;
 
+    private boolean parked;
     private boolean parkedX;
     private boolean parkedY;
 
@@ -123,6 +126,12 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
         parkingManager.initialize();
 
         sunPositionData = new SunPositionData();
+
+        positioningManager = new PositioningProcessManager();
+        positioningManager.setManagerRepository(this);
+        positioningManager.initialize();
+
+        parked = Configuration.getStatusBoolean("system.parked", false);
     }
 
 
@@ -157,7 +166,11 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
     }
 
     private void performRunActions() {
-        park();
+        if (!parked) {
+            park();
+            Configuration.setStatus("system.parked", "true", true);
+            parked = true;
+        }
         calibrate();
         calculateNextPosition();
         position();
@@ -202,7 +215,13 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
 
     private void position() {
         System.out.println("Positioning system...");
-
+        try {
+            positioningManager.performManagementActions();
+        } catch (ConnectionLostException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         System.out.println("Positioning finished.");
     }
 

@@ -28,7 +28,7 @@ public class UtilTests {
         String firstRun = "firstRun";
         Configuration.setStatus(firstRun, "true", true);
 
-        Boolean statusBoolean = Configuration.getStatusBoolean(firstRun);
+        Boolean statusBoolean = Configuration.getStatusBoolean(firstRun, null);
         Assert.assertNotNull(statusBoolean);
         Assert.assertTrue(statusBoolean);
 

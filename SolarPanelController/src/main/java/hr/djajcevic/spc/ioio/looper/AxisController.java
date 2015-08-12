@@ -7,6 +7,7 @@ import hr.djajcevic.spc.ioio.looper.exception.ServoMotorUnavailableException;
 import hr.djajcevic.spc.util.Configuration;
 import ioio.lib.api.*;
 import ioio.lib.api.exception.ConnectionLostException;
+import lombok.Getter;
 
 /**
  * @author djajcevic | 09.08.2015.
@@ -32,8 +33,12 @@ public class AxisController {
     private DigitalInput endPositionIndicatorPinInput;
     private DigitalInput stepIndicatorPinInput;
 
+    @Getter
     private int currentStep;
+    @Getter
     private int maxSteps;
+
+    @Getter
     private boolean atStart, atEnd;
 
     private boolean initialized;
@@ -58,6 +63,7 @@ public class AxisController {
     }
 
     private void loadConfiguration() {
+        currentStep = Configuration.getStatusInteger("servo." + axis + ".currentStep", 0);
         maxSteps = Configuration.getConfigInt("servo." + axis + ".maxSteps");
         controlPin = Configuration.getConfigInt("servo." + axis + ".pin.control");
         directionPin = Configuration.getConfigInt("servo." + axis + ".pin.direction");
@@ -210,18 +216,6 @@ public class AxisController {
                 atStart = true;
             }
         }
-    }
-
-    public int getCurrentStep() {
-        return currentStep;
-    }
-
-    public boolean isAtStart() {
-        return atStart;
-    }
-
-    public boolean isAtEnd() {
-        return atEnd;
     }
 
     @Override

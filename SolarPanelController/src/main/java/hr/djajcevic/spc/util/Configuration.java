@@ -19,6 +19,8 @@ public class Configuration {
     public static final String GPS_ALTITUDE = "gps.altitude";
     public static final String SERVO_X_CURRENT_STEP = "servo.X.currentStep";
     public static final String SERVO_Y_CURRENT_STEP = "servo.Y.currentStep";
+    public static final String SERVO_X_STEP_DEGREE = "servo.X.stepDegree";
+    public static final String SERVO_Y_STEP_DEGREE = "servo.Y.stepDegree";
 
     private static final FileInputStream reader;
     private static final File statusPropertiesFile;
@@ -145,20 +147,20 @@ public class Configuration {
         return statusProperties.getProperty(name);
     }
 
-    public static Boolean getStatusBoolean(String name) {
+    public static Boolean getStatusBoolean(String name, final Boolean defaultValue) {
         String value = statusProperties.getProperty(name);
         if (hasText(value)) {
             return Boolean.valueOf(value);
         }
-        return null;
+        return defaultValue;
     }
 
-    public static Integer getStatusInteger(String name) {
+    public static Integer getStatusInteger(String name, final Integer defaultValue) {
         String value = statusProperties.getProperty(name);
         if (hasText(value)) {
             return Integer.parseInt(value);
         }
-        return null;
+        return defaultValue;
     }
 
     public static Double getStatusDouble(String name) {
