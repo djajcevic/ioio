@@ -1,5 +1,6 @@
 package hr.djajcevic.spc.ioio.looper;
 
+import hr.djajcevic.spc.ioio.looper.compas.CompassData;
 import hr.djajcevic.spc.ioio.looper.exception.InvalidPanelStateException;
 import hr.djajcevic.spc.ioio.looper.exception.PanelReachedEndPosition;
 import hr.djajcevic.spc.ioio.looper.exception.PanelReachedStartPosition;
@@ -101,7 +102,7 @@ public class AxisController {
 
         failedSteps = 0;
 
-        for (int step = 0; step < steps; step++) {
+        for (int step = 0; step < Math.abs(steps); step++) {
             try {
                 performMovement(positiveDirection);
             } catch (PanelReachedStartPosition e) {
@@ -234,6 +235,17 @@ public class AxisController {
                 ", atEnd=" + atEnd +
                 ", initialized=" + initialized +
                 '}';
+    }
+
+    public void update(final CompassData data) {
+        switch (axis) {
+            case X:
+                currentStep = data.getHeadingDegrees() != null ? data.getHeadingDegrees().intValue() : 0;
+                Configuration.saveCurrentXStep(currentStep);
+                break;
+            case Y:
+                break;
+        }
     }
 
     public enum Axis {

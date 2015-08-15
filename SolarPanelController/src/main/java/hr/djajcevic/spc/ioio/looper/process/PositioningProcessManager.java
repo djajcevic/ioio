@@ -15,6 +15,7 @@ import java.util.TimeZone;
  */
 public class PositioningProcessManager extends AbstractProcessManager {
 
+    public static final int MAX_NEGATIVE_STEP_COUNT = 0;
     private AxisController xAxisController;
     private AxisController yAxisController;
 
@@ -76,20 +77,8 @@ public class PositioningProcessManager extends AbstractProcessManager {
             return;
         }
 
-        if (azimuth > 180) {
-            azimuth = azimuth - 360;
-        }
-
-        if (headingDegrees > azimuth) {
-            headingDegrees = 360 - headingDegrees + 90;
-        }
-
         System.out.println("Real azimuth: " + azimuth);
-        int nextPositionAngle = (int) (headingDegrees + azimuth);
-
-        if (nextPositionAngle > 360) {
-            nextPositionAngle = 360 - nextPositionAngle;
-        }
+        int nextPositionAngle = calculateNextPositionAngle(headingDegrees, azimuth);
 
         System.out.println("Next position angle: " + nextPositionAngle);
 
@@ -99,26 +88,23 @@ public class PositioningProcessManager extends AbstractProcessManager {
         int currentStep = xAxisController.getCurrentStep();
         int finalStepCount = nextPositionStepCount;
 
-        int nextPositionStepCountAbs = Math.abs(nextPositionStepCount);
-        if (nextPositionStepCountAbs > 0) {
-
-            if (nextPositionStepCount > 0) {
-                if ((currentStep + nextPositionStepCount) > maxSteps) {
-                    finalStepCount = -((360 - nextPositionAngle) / xAxisStepDegree);
-                } else {
-                    finalStepCount = nextPositionStepCount;
-                }
-            } else {
-                if ((currentStep - nextPositionStepCountAbs) < 0) {
-                    finalStepCount = Math.abs((360 - nextPositionStepCountAbs) / xAxisStepDegree);
-                } else {
-                    finalStepCount = nextPositionStepCount;
-                }
-            }
+        if ((currentStep - Math.abs(nextPositionStepCount)) <= MAX_NEGATIVE_STEP_COUNT) {
+            finalStepCount = 360 - Math.abs(nextPositionStepCount);
+        } else if ((currentStep + nextPositionStepCount) > maxSteps) {
+            throw new RuntimeException("Invalid next step count (exceeds max step count): " + nextPositionStepCount);
         }
 
         xAxisController.move(finalStepCount > 0, finalStepCount);
         Configuration.saveCurrentXStep(xAxisController.getCurrentStep());
+    }
+
+    public static int calculateNextPositionAngle(final Double headingDegrees, final Double azimuth) {
+        int x = (int)(azimuth - headingDegrees);
+        int y = (int)(azimuth - 360 - headingDegrees);
+        int xAbs = Math.abs(x);
+        int yAbs = Math.abs(y);
+        int minAbs = Math.min(xAbs, yAbs);
+        return minAbs == xAbs ? x : y;
     }
 
 

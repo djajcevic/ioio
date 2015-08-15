@@ -88,7 +88,7 @@ public class Configuration {
         }
     }
 
-    private static void storeStatusProperties() {
+    private static synchronized void storeStatusProperties() {
         try {
             statusProperties.store(new FileWriter(statusPropertiesFile, false), null);
         } catch (IOException e) {
@@ -96,11 +96,11 @@ public class Configuration {
         }
     }
 
-    public static void saveCurrentXStep(int currentStep) {
+    public static synchronized void saveCurrentXStep(int currentStep) {
         setStatus(SERVO_X_CURRENT_STEP, "" + currentStep, true);
     }
 
-    public static void saveCurrentYStep(int currentStep) {
+    public static synchronized void saveCurrentYStep(int currentStep) {
         setStatus(SERVO_Y_CURRENT_STEP, "" + currentStep, true);
     }
 

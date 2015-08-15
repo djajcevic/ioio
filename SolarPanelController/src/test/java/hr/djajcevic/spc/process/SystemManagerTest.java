@@ -2,6 +2,7 @@ package hr.djajcevic.spc.process;
 
 import hr.djajcevic.spc.ioio.looper.compas.CompassData;
 import hr.djajcevic.spc.ioio.looper.gps.GPSData;
+import hr.djajcevic.spc.ioio.looper.process.PositioningProcessManager;
 import hr.djajcevic.spc.ioio.looper.process.SystemManager;
 import hr.djajcevic.spc.ioio.looper.process.SystemManagerListener;
 import ioio.lib.api.*;
@@ -323,4 +324,8 @@ public class SystemManagerTest {
         }
     }
 
+    @Test
+    public void calculateNextPosition() {
+        System.out.println(PositioningProcessManager.calculateNextPositionAngle(0.0, 269.0));
+    }
 }

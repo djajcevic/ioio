@@ -49,6 +49,8 @@ public class CalibrationProcessManager extends AbstractProcessManager {
         Configuration.saveGPSData(managerRepository.getGpsData());
         compassReader.readData();
         Configuration.saveCompassData(managerRepository.getCompassData());
+
+        xAxisController.update(managerRepository.getCompassData());
     }
 
 }
