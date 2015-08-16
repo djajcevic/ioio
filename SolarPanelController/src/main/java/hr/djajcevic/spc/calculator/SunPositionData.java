@@ -1,7 +1,6 @@
 package hr.djajcevic.spc.calculator;
 
 import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
 /**
@@ -75,18 +74,7 @@ public class SunPositionData {
     public double sunset;
 
     public SunPositionData() {
-        Calendar calendar = GregorianCalendar.getInstance();
-//        calendar.setTime(new Date());
-        TimeZone timeZone = calendar.getTimeZone();
-        boolean b = timeZone.inDaylightTime(calendar.getTime());
-        this.day = calendar.get(Calendar.DATE);
-        this.month = calendar.get(Calendar.MONTH) + 1;
-        this.year = calendar.get(Calendar.YEAR);
-        int dstSavings = timeZone.getDSTSavings() / 3600000;
-        this.hour = calendar.get(Calendar.HOUR_OF_DAY) - dstSavings;
-        this.minute = calendar.get(Calendar.MINUTE);
-        this.second = calendar.get(Calendar.SECOND);
-        this.timezone = dstSavings;
+        setTime(Calendar.getInstance());
         this.delta_ut1 = 0;
         this.delta_t = 67;
     }
@@ -155,6 +143,18 @@ public class SunPositionData {
         this.suntransit = other.suntransit;
         this.sunrise = other.sunrise;
         this.sunset = other.sunset;
+    }
+
+    public void setTime(Calendar calendar) {
+        TimeZone timeZone = calendar.getTimeZone();
+        this.day = calendar.get(Calendar.DATE);
+        this.month = calendar.get(Calendar.MONTH) + 1;
+        this.year = calendar.get(Calendar.YEAR);
+        int dstSavings = timeZone.getDSTSavings() / 3600000;
+        this.hour = calendar.get(Calendar.HOUR_OF_DAY) - dstSavings;
+        this.minute = calendar.get(Calendar.MINUTE);
+        this.second = calendar.get(Calendar.SECOND);
+        this.timezone = dstSavings;
     }
 
     @Override

@@ -80,6 +80,10 @@ public class Configuration {
         return Float.parseFloat(getConfig(name));
     }
 
+    public static boolean getConfigBoolean(final String name) {
+       return Boolean.valueOf(getConfig(name));
+    }
+
     public static void setStatus(String name, Object value, final boolean save) {
         String string = value != null ? value.toString() : "";
         statusProperties.setProperty(name, string);
@@ -170,5 +174,6 @@ public class Configuration {
         }
         return null;
     }
+
 
 }

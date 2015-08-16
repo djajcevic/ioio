@@ -2,6 +2,8 @@ package hr.djajcevic.spc.ioio.looper.process;
 
 import hr.djajcevic.spc.calculator.SunPositionData;
 import hr.djajcevic.spc.ioio.looper.AxisController;
+import hr.djajcevic.spc.ioio.looper.exception.CurrentTimeBeforeSunriseException;
+import hr.djajcevic.spc.ioio.looper.exception.CurrentTimeAfterSunsetException;
 import hr.djajcevic.spc.util.Configuration;
 import ioio.lib.api.exception.ConnectionLostException;
 
@@ -73,9 +75,10 @@ public class PositioningProcessManager extends AbstractProcessManager {
 
         if (gpsTime.after(sunset)) {
             System.out.printf("passed sunset");
+            throw new CurrentTimeAfterSunsetException();
         } else if (gpsTime.before(sunrise)) {
             System.out.printf("before sunrise");
-            return;
+            throw new CurrentTimeBeforeSunriseException();
         }
 
         System.out.println("Real azimuth: " + azimuth);
@@ -103,6 +106,10 @@ public class PositioningProcessManager extends AbstractProcessManager {
 
         System.out.println("Next Y position angle `" + nextYPositionAngle + "` for Sun altitude `" + altitude + "`");
 
+        if (nextYPositionStepCount < currentStep && currentStep == 0) {
+            System.out.println("Next Y position angle is unreachable. Skipping...");
+            return;
+        }
         yAxisController.move(nextYPositionStepCount > 0, nextYPositionStepCount);
     }
 

@@ -5,6 +5,8 @@ import hr.djajcevic.spc.calculator.SunPositionData;
 import hr.djajcevic.spc.ioio.looper.AxisController;
 import hr.djajcevic.spc.ioio.looper.compas.CompassData;
 import hr.djajcevic.spc.ioio.looper.compas.CompassReader;
+import hr.djajcevic.spc.ioio.looper.exception.CurrentTimeBeforeSunriseException;
+import hr.djajcevic.spc.ioio.looper.exception.CurrentTimeAfterSunsetException;
 import hr.djajcevic.spc.ioio.looper.exception.UnknownPanelCurrentStep;
 import hr.djajcevic.spc.ioio.looper.gps.GPSData;
 import hr.djajcevic.spc.ioio.looper.gps.GPSReader;
@@ -167,14 +169,18 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
     }
 
     private void performRunActions() {
+        safePark();
+        calibrate();
+        calculateNextPosition();
+        position();
+    }
+
+    private void safePark() {
         if (!parked) {
             park();
             Configuration.setStatus("system.parked", "true", true);
             parked = true;
         }
-        calibrate();
-        calculateNextPosition();
-        position();
     }
 
     private void park() {
@@ -209,6 +215,7 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
 
         sunPositionData.latitude = gpsData.getLatitude();
         sunPositionData.longitude = gpsData.getLongitude();
+        sunPositionData.setTime(gpsData.getTime());
         SunPositionCalculator.calculateSunPosition(sunPositionData);
 
         System.out.println("Azimuth: " + sunPositionData.azimuth + ", Zenith: " + sunPositionData.zenith);
@@ -220,6 +227,10 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
         System.out.println("Positioning system...");
         try {
             positioningManager.performManagementActions();
+        } catch (CurrentTimeBeforeSunriseException e) {
+            safePark();
+        } catch (CurrentTimeAfterSunsetException e) {
+            safePark();
         } catch (ConnectionLostException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {

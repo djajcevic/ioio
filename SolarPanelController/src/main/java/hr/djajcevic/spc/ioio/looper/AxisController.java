@@ -1,10 +1,7 @@
 package hr.djajcevic.spc.ioio.looper;
 
 import hr.djajcevic.spc.ioio.looper.compas.CompassData;
-import hr.djajcevic.spc.ioio.looper.exception.InvalidPanelStateException;
-import hr.djajcevic.spc.ioio.looper.exception.PanelReachedEndPosition;
-import hr.djajcevic.spc.ioio.looper.exception.PanelReachedStartPosition;
-import hr.djajcevic.spc.ioio.looper.exception.ServoMotorUnavailableException;
+import hr.djajcevic.spc.ioio.looper.exception.*;
 import hr.djajcevic.spc.util.Configuration;
 import ioio.lib.api.*;
 import ioio.lib.api.exception.ConnectionLostException;
@@ -25,14 +22,20 @@ public class AxisController {
     private int directionPin;
     private int startPositionIndicatorPin;
     private int endPositionIndicatorPin;
-    private int stepIndicatorPin;
     private int servoFreq;
+
+    private int hall1Pin;
+    private int hall2Pin;
+    private int hall3Pin;
 
     private PwmOutput controlPinOutput;
     private DigitalOutput directionPinOutput;
     private DigitalInput startPositionIndicatorPinInput;
     private DigitalInput endPositionIndicatorPinInput;
-    private DigitalInput stepIndicatorPinInput;
+    private DigitalInput hall1PinInput;
+    private DigitalInput hall2PinInput;
+    private DigitalInput hall3PinInput;
+    private String currentHallPosition;
 
     @Getter
     private int currentStep;
@@ -71,16 +74,20 @@ public class AxisController {
         servoFreq = Configuration.getConfigInt("servo." + axis + ".freq");
         startPositionIndicatorPin = Configuration.getConfigInt("servo." + axis + ".pin.startPositionIndicator");
         endPositionIndicatorPin = Configuration.getConfigInt("servo." + axis + ".pin.endPositionIndicator");
-        stepIndicatorPin = Configuration.getConfigInt("servo." + axis + ".pin.stepIndicator");
+        hall1Pin = Configuration.getConfigInt("servo." + axis + ".pin.hall1");
+        hall2Pin = Configuration.getConfigInt("servo." + axis + ".pin.hall2");
+        hall3Pin = Configuration.getConfigInt("servo." + axis + ".pin.hall3");
     }
 
     private void initializeIOIOPins() throws ConnectionLostException {
-        checkAndClosePins(controlPinOutput, directionPinOutput, startPositionIndicatorPinInput, endPositionIndicatorPinInput, stepIndicatorPinInput);
+        checkAndClosePins(controlPinOutput, directionPinOutput, startPositionIndicatorPinInput, endPositionIndicatorPinInput, hall1PinInput, hall2PinInput, hall3PinInput);
         controlPinOutput = ioio.openPwmOutput(controlPin, servoFreq);
         directionPinOutput = ioio.openDigitalOutput(directionPin);
         startPositionIndicatorPinInput = ioio.openDigitalInput(startPositionIndicatorPin);
         endPositionIndicatorPinInput = ioio.openDigitalInput(endPositionIndicatorPin);
-        stepIndicatorPinInput = ioio.openDigitalInput(stepIndicatorPin);
+        hall1PinInput = ioio.openDigitalInput(hall1Pin);
+        hall2PinInput = ioio.openDigitalInput(hall2Pin);
+        hall3PinInput = ioio.openDigitalInput(hall3Pin);
     }
 
     private void checkAndClosePins(Closeable... pins) {
@@ -98,13 +105,12 @@ public class AxisController {
             throw new RuntimeException("Controller not initialized!");
         }
 
-        checkStarEndIndicators();
-
         failedSteps = 0;
 
         for (int step = 0; step < Math.abs(steps); step++) {
             try {
                 performMovement(positiveDirection);
+                validateMovement(positiveDirection);
             } catch (PanelReachedStartPosition e) {
                 delegate.reachedStartPosition();
                 break;
@@ -115,14 +121,63 @@ public class AxisController {
         }
     }
 
+    private boolean validateMovement(final boolean positiveDirection) throws ConnectionLostException, InterruptedException {
+        if (Configuration.getConfigBoolean("skip.validation.movement")) {
+            return true;
+        }
+        ioio.beginBatch();
+
+
+        boolean hall1 = hall1PinInput.read();
+        boolean hall2 = hall1PinInput.read();
+        boolean hall3 = hall1PinInput.read();
+
+        ioio.endBatch();
+
+        String realHallSensorValue = (hall1 ? "1" : "0") + (hall2 ? "1" : "0") + (hall3 ? "1" : "0");
+
+        if (currentHallPosition == null) {
+            currentHallPosition = realHallSensorValue;
+            return true;
+        }
+
+        int[] currentHallCombination = HallSensorUtil.POSSIBLE_COMBINATIONS_MAP.get(currentHallPosition);
+
+        if (realHallSensorValue.equals(currentHallPosition)) {
+            throw new ServoMotorUnavailableException("Hall sensor data not invalid");
+        }
+
+        if (!HallSensorUtil.POSSIBLE_COMBINATIONS_MAP.containsKey(realHallSensorValue)) {
+            throw new ServoMotorUnavailableException("Invalid Hall sensor state: " + realHallSensorValue);
+        }
+
+        int[] newSensorValue = HallSensorUtil.POSSIBLE_COMBINATIONS_MAP.get(realHallSensorValue);
+
+        int indexOfCurrentValue = HallSensorUtil.POSSIBLE_COMBINATIONS_INT.indexOf(currentHallCombination);
+        int indexOfNewValue = HallSensorUtil.POSSIBLE_COMBINATIONS_INT.indexOf(newSensorValue);
+
+        int possibleCombinationCount = HallSensorUtil.POSSIBLE_COMBINATIONS_INT.size();
+
+        int validNextPositionIndex = indexOfCurrentValue + (positiveDirection ? 1 : -1);
+        if (validNextPositionIndex == possibleCombinationCount) {
+            validNextPositionIndex = 0;
+        }
+
+        if (validNextPositionIndex != indexOfNewValue) {
+            throw new ServoMotorHallSensorDataInvalidException("Received invalid Hall sensor data. Tried to move in " + (positiveDirection ? "positive" : "negative") + " direction but got " + (!positiveDirection ? "positive" : "negative") + " movement information!");
+        }
+
+        currentHallPosition = realHallSensorValue;
+
+        return true;
+    }
+
     public void move(boolean positiveDirection) throws ConnectionLostException, InterruptedException {
         System.out.println("Initialized " + axis + " movement in " + (positiveDirection ? "positive" : "negative") + " direction");
 
         if (!initialized) {
             throw new RuntimeException("Controller not initialized!");
         }
-
-        checkStarEndIndicators();
 
         failedSteps = 0;
 
@@ -154,15 +209,17 @@ public class AxisController {
             throw new ServoMotorUnavailableException("Too many failed steps on " + this + " controller!");
         }
 
-        if (!movementValid(positiveDirection)) {
+        if (!validateDirection(positiveDirection)) {
             return false;
         }
 
         directionPinOutput.write(positiveDirection);
         controlPinOutput.setPulseWidth(PULSE_WIDTH);
+
         checkStarEndIndicators();
-        if (stepIndicatorPinInput.read()) {
-            if (movementValid(positiveDirection)) {
+
+        if (validateMovement(positiveDirection)) {
+            if (validateDirection(positiveDirection)) {
                 currentStep = positiveDirection ? currentStep + 1 : currentStep - 1;
                 delegate.stepCompleted(currentStep);
             }
@@ -172,7 +229,7 @@ public class AxisController {
         return true;
     }
 
-    private boolean movementValid(final boolean positiveDirection) {
+    private boolean validateDirection(final boolean positiveDirection) {
         if (atStart && !positiveDirection) {
             throw new PanelReachedStartPosition(axis);
         }
@@ -227,7 +284,7 @@ public class AxisController {
                 ", directionPin=" + directionPin +
                 ", startPositionIndicatorPin=" + startPositionIndicatorPin +
                 ", endPositionIndicatorPin=" + endPositionIndicatorPin +
-                ", stepIndicatorPin=" + stepIndicatorPin +
+                ", hall1Pin=" + hall1Pin +
                 ", servoFreq=" + servoFreq +
                 ", currentStep=" + currentStep +
                 ", maxSteps=" + maxSteps +

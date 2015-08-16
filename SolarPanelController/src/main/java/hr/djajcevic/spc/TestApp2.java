@@ -14,15 +14,19 @@ import java.io.InputStreamReader;
  */
 public class TestApp2 extends IOIOConsoleApp {
 
+    static {
+//        System.setProperty("ioio.SerialPorts", "/dev/tty.usbmodem1421");
+        System.setProperty("ioio.SerialPorts", "/dev/tty.usbmodem1411");
+    }
+
     private DigitalOutput statLed;
     private DigitalOutput pin1;
     private DigitalOutput pin3;
     private boolean firstLedOn;
     private PwmOutput pwmOutput;
 
-    static {
-//        System.setProperty("ioio.SerialPorts", "/dev/tty.usbmodem1421");
-        System.setProperty("ioio.SerialPorts", "/dev/tty.usbmodem1411");
+    public static void main(String[] args) throws Exception {
+        new TestApp2().go(args);
     }
 
     @Override
@@ -39,16 +43,12 @@ public class TestApp2 extends IOIOConsoleApp {
 
     @Override
     public IOIOLooper createIOIOLooper(final String connectionType, final Object extra) {
-        return new SolarPanelControllerImpl(new TestPositioningDelegate());
+        return new SolarPanelControllerImpl(null);
     }
 
     private void doYourStuff() throws ConnectionLostException, InterruptedException {
         statLed.write(false);
         Thread.sleep(1000);
         statLed.write(true);
-    }
-
-    public static void main(String[] args) throws Exception {
-        new TestApp2().go(args);
     }
 }

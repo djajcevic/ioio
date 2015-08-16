@@ -36,4 +36,26 @@ public class Util {
         return calendar;
     }
 
+    /**
+     * @param value boolean array
+     * @return "0011" like string
+     */
+    public static String fromBooleanArray(boolean[] value) {
+        String resultString = "";
+        for (final boolean aValue : value) {
+            resultString += aValue ? "1" : "0";
+        }
+        return resultString;
+    }
+
+    /**
+     * Same as fromBooleanArray but reversed.
+     * @param value boolean array
+     * @return "1100" like string
+     * @see #fromBooleanArray(boolean[])
+     */
+    public static String fromMSPtoLSB(boolean[] value) {
+        String resultString = fromBooleanArray(value);
+        return new StringBuilder(resultString).reverse().toString();
+    }
 }

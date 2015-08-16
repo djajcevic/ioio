@@ -67,8 +67,8 @@ public class SystemManagerTest {
                 return new DigitalInput() {
                     @Override
                     public boolean read() throws InterruptedException, ConnectionLostException {
-                        return pin == 5 || pin == 10;
-//                        return false;
+//                        return pin == 5 || pin == 10;
+                        return false;
                     }
 
                     @Override
@@ -245,12 +245,12 @@ public class SystemManagerTest {
 
             @Override
             public void beginBatch() throws ConnectionLostException {
-
+                System.out.println("Starting batch");
             }
 
             @Override
             public void endBatch() throws ConnectionLostException {
-
+                System.out.println("Ending batch");
             }
 
             @Override
