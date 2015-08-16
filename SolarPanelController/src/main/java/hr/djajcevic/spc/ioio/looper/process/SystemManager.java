@@ -205,7 +205,6 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
 
         sunPositionData.latitude = gpsData.getLatitude();
         sunPositionData.longitude = gpsData.getLongitude();
-        sunPositionData.elevation = gpsData.getAltitude();
         SunPositionCalculator.calculateSunPosition(sunPositionData);
 
         System.out.println("Azimuth: " + sunPositionData.azimuth + ", Zenith: " + sunPositionData.zenith);

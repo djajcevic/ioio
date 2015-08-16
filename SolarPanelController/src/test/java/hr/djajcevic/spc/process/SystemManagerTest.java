@@ -326,6 +326,7 @@ public class SystemManagerTest {
 
     @Test
     public void calculateNextPosition() {
-        System.out.println(PositioningProcessManager.calculateNextPositionAngle(0.0, 269.0));
+        System.out.println(PositioningProcessManager.calculateNextXPositionAngle(0.0, 269.0));
+        System.out.println(PositioningProcessManager.calculateNextYPositionAngle(50.0, 90.0));
     }
 }
