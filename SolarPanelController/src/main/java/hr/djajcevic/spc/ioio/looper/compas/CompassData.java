@@ -26,4 +26,8 @@ public class CompassData {
         this.headingDegrees = headingDegrees;
     }
 
+    public boolean isDataValid(){
+        return  x != null && y != null && z != null;
+    }
+
 }

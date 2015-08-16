@@ -5,6 +5,7 @@ import hr.djajcevic.spc.calculator.SunPositionData;
 import hr.djajcevic.spc.ioio.looper.AxisController;
 import hr.djajcevic.spc.ioio.looper.compas.CompassData;
 import hr.djajcevic.spc.ioio.looper.compas.CompassReader;
+import hr.djajcevic.spc.ioio.looper.exception.UnknownPanelCurrentStep;
 import hr.djajcevic.spc.ioio.looper.gps.GPSData;
 import hr.djajcevic.spc.ioio.looper.gps.GPSReader;
 import hr.djajcevic.spc.util.Configuration;
@@ -192,6 +193,9 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
         System.out.println("Calibrating system...");
         try {
             calibrationManager.performManagementActions();
+        } catch (UnknownPanelCurrentStep e) {
+            System.out.println("Received UnknownPanelCurrentStep exception, parking system to recalibrate it.");
+            park();
         } catch (ConnectionLostException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {

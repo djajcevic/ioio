@@ -2,6 +2,8 @@ package hr.djajcevic.spc.ioio.looper.process;
 
 import hr.djajcevic.spc.ioio.looper.AxisController;
 import hr.djajcevic.spc.ioio.looper.compas.CompassReader;
+import hr.djajcevic.spc.ioio.looper.exception.CompassDataNotAvailable;
+import hr.djajcevic.spc.ioio.looper.exception.UnknownPanelCurrentStep;
 import hr.djajcevic.spc.ioio.looper.gps.GPSReader;
 import hr.djajcevic.spc.util.Configuration;
 import ioio.lib.api.exception.ConnectionLostException;
@@ -49,6 +51,19 @@ public class CalibrationProcessManager extends AbstractProcessManager {
         Configuration.saveGPSData(managerRepository.getGpsData());
         compassReader.readData();
         Configuration.saveCompassData(managerRepository.getCompassData());
+
+        if (!managerRepository.getCompassData().isDataValid()) {
+            throw new CompassDataNotAvailable();
+        }
+
+        Double headingDegrees = managerRepository.getCompassData().getHeadingDegrees();
+        int heading = headingDegrees.intValue();
+
+        double difference = Math.abs(heading - xAxisController.getCurrentStep());
+
+        if (difference > 10) {
+            throw new UnknownPanelCurrentStep();
+        }
 
         xAxisController.update(managerRepository.getCompassData());
     }
