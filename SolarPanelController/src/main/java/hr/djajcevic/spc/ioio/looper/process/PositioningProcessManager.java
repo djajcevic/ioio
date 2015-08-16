@@ -88,7 +88,7 @@ public class PositioningProcessManager extends AbstractProcessManager {
         int currentStep = xAxisController.getCurrentStep();
         int finalStepCount = nextPositionStepCount;
 
-        if ((currentStep - Math.abs(nextPositionStepCount)) <= MAX_NEGATIVE_STEP_COUNT) {
+        if (nextPositionStepCount < 0 && (currentStep - Math.abs(nextPositionStepCount)) <= MAX_NEGATIVE_STEP_COUNT) {
             finalStepCount = 360 - Math.abs(nextPositionStepCount);
         } else if ((currentStep + nextPositionStepCount) > maxSteps) {
             throw new RuntimeException("Invalid next step count (exceeds max step count): " + nextPositionStepCount);
