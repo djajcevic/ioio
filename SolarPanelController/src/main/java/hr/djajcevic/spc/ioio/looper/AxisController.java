@@ -127,10 +127,9 @@ public class AxisController {
         }
         ioio.beginBatch();
 
-
         boolean hall1 = hall1PinInput.read();
-        boolean hall2 = hall1PinInput.read();
-        boolean hall3 = hall1PinInput.read();
+        boolean hall2 = hall2PinInput.read();
+        boolean hall3 = hall3PinInput.read();
 
         ioio.endBatch();
 
