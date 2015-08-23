@@ -194,7 +194,6 @@ public class AxisController {
             }
         }
 
-        controlPinOutput.setPulseWidth(0);
     }
 
     /**
@@ -215,16 +214,15 @@ public class AxisController {
         directionPinOutput.write(positiveDirection);
         controlPinOutput.setPulseWidth(PULSE_WIDTH);
 
-        checkStarEndIndicators();
+        checkStartEndIndicators();
 
         if (validateMovement(positiveDirection)) {
-            if (validateDirection(positiveDirection)) {
-                currentStep = positiveDirection ? currentStep + 1 : currentStep - 1;
-                delegate.stepCompleted(currentStep);
-            }
+            currentStep = positiveDirection ? currentStep + 1 : currentStep - 1;
+            delegate.stepCompleted(currentStep);
         } else {
             failedSteps++;
         }
+        controlPinOutput.setPulseWidth(0);
         return true;
     }
 
@@ -248,7 +246,7 @@ public class AxisController {
         }
     }
 
-    private void checkStarEndIndicators() throws ConnectionLostException, InterruptedException {
+    private void checkStartEndIndicators() throws ConnectionLostException, InterruptedException {
         atStart = startPositionIndicatorPinInput.read();
         atEnd = endPositionIndicatorPinInput.read();
 

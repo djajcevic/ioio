@@ -46,7 +46,6 @@ public class GPSReader implements IOIOReader {
             String result = null;
 
             while ((result = reader.readLine()) != null) {
-//                System.out.println(result);
                 if (!result.startsWith("$GPGGA")) {
                     continue;
                 }
@@ -60,10 +59,6 @@ public class GPSReader implements IOIOReader {
                 }
             }
             reader.close();
-        } else {
-            readBuffer = new byte[64];
-            gpsDataOutputStream.write(readBuffer);
-            gpsDataOutputStream.flush();
         }
     }
 
@@ -101,7 +96,6 @@ public class GPSReader implements IOIOReader {
 
         uartInput = ioio.openUart(gpsPin, IOIO.INVALID_PIN, gpsFreq, Uart.Parity.NONE, Uart.StopBits.ONE);
         gpsDataInputStream = uartInput.getInputStream();
-        gpsDataOutputStream = uartInput.getOutputStream();
 
         initialized = true;
     }

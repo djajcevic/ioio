@@ -165,14 +165,10 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
 
     @Override
     public void loop() throws ConnectionLostException, InterruptedException {
-        performRunActions();
-    }
-
-    private void performRunActions() {
         safePark();
         calibrate();
         calculateNextPosition();
-        position();
+        doPosition();
     }
 
     private void safePark() {
@@ -211,11 +207,12 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
     }
 
     private void calculateNextPosition() {
-        System.out.println("Calculating next position...");
+        System.out.println("Calculating next doPosition...");
 
         sunPositionData.latitude = gpsData.getLatitude();
         sunPositionData.longitude = gpsData.getLongitude();
         sunPositionData.setTime(gpsData.getTime());
+        sunPositionData.elevation = gpsData.getAltitude();
         SunPositionCalculator.calculateSunPosition(sunPositionData);
 
         System.out.println("Azimuth: " + sunPositionData.azimuth + ", Zenith: " + sunPositionData.zenith);
@@ -223,7 +220,7 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
         System.out.println("Calculation finished.");
     }
 
-    private void position() {
+    private void doPosition() {
         System.out.println("Positioning system...");
         try {
             positioningManager.performManagementActions();

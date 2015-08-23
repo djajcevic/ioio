@@ -14,7 +14,7 @@ public class CompassReader implements IOIOReader {
 
     public static final int SENSOR_ADDRESS = 0x1E;
     public static final byte[] SCALE_CONFIGURATION_DATA = new byte[]{0x01, 0x01};
-    public static final byte[] CONTINIOUS_MODE_DATA = new byte[]{0x02, 0x00};
+    public static final byte[] CONTINUOUS_MODE_DATA = new byte[]{0x02, 0x00};
     public static final byte[] READ_SENSOR_DATA = new byte[]{0x03};
     public static final double COMPASS_SCALE = 0.92;
 
@@ -41,7 +41,7 @@ public class CompassReader implements IOIOReader {
         readData = new byte[6];
 
         // set CONTINIOUS mode
-        twiMaster.writeRead(SENSOR_ADDRESS, false, CONTINIOUS_MODE_DATA, CONTINIOUS_MODE_DATA.length, readData, readData.length);
+        twiMaster.writeRead(SENSOR_ADDRESS, false, CONTINUOUS_MODE_DATA, CONTINUOUS_MODE_DATA.length, readData, readData.length);
 
         initialized = true;
     }
@@ -54,10 +54,8 @@ public class CompassReader implements IOIOReader {
 
         byte[] readData = new byte[6];
 
-//        System.out.println("Reading data...");
         twiMaster.writeRead(SENSOR_ADDRESS, false, READ_SENSOR_DATA, READ_SENSOR_DATA.length, readData, readData.length);
 
-//        System.out.println("Read data: " + Arrays.toString(readData));
         int[] rawData = new int[3];
         rawData[0] = (readData[0] << 8) | readData[1];
         rawData[1] = (readData[2] << 8) | readData[3];
@@ -68,9 +66,6 @@ public class CompassReader implements IOIOReader {
         scaledData[1] = rawData[1] * COMPASS_SCALE;
         scaledData[2] = rawData[2] * COMPASS_SCALE;
 
-//        System.out.println("Raw data: " + Arrays.toString(rawData));
-//        System.out.println("Scaled data: " + Arrays.toString(scaledData));
-
         double heading = Math.atan2(scaledData[2], scaledData[0]);
         if (heading < 0)
             heading += 2 * Math.PI;
@@ -80,7 +75,6 @@ public class CompassReader implements IOIOReader {
 
         CompassData data = new CompassData(scaledData[0], scaledData[2], scaledData[1], heading, headingDegrees);
         delegate.dataReady(data);
-//        System.out.println("Heading: " + heading + "rad, " + headingDegrees + "deg");
     }
 
     public interface Delegate {
