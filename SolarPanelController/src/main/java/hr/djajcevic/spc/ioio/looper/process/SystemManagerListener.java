@@ -1,6 +1,7 @@
 package hr.djajcevic.spc.ioio.looper.process;
 
 import hr.djajcevic.spc.ioio.looper.compas.CompassData;
+import hr.djajcevic.spc.ioio.looper.exception.SystemException;
 import hr.djajcevic.spc.ioio.looper.gps.GPSData;
 import ioio.lib.api.IOIO;
 
@@ -28,4 +29,6 @@ public interface SystemManagerListener {
     void gpsPositionLocked(GPSData data);
 
     void compassDataReady(CompassData data);
+
+    void performingParkDueTo(SystemException error);
 }

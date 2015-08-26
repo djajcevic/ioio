@@ -5,9 +5,7 @@ import hr.djajcevic.spc.calculator.SunPositionData;
 import hr.djajcevic.spc.ioio.looper.AxisController;
 import hr.djajcevic.spc.ioio.looper.compas.CompassData;
 import hr.djajcevic.spc.ioio.looper.compas.CompassReader;
-import hr.djajcevic.spc.ioio.looper.exception.CurrentTimeBeforeSunriseException;
-import hr.djajcevic.spc.ioio.looper.exception.CurrentTimeAfterSunsetException;
-import hr.djajcevic.spc.ioio.looper.exception.UnknownPanelCurrentStep;
+import hr.djajcevic.spc.ioio.looper.exception.*;
 import hr.djajcevic.spc.ioio.looper.gps.GPSData;
 import hr.djajcevic.spc.ioio.looper.gps.GPSReader;
 import hr.djajcevic.spc.util.Configuration;
@@ -184,9 +182,9 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
         try {
             parkingManager.performManagementActions();
         } catch (ConnectionLostException e) {
-            e.printStackTrace();
+            throw new ParkingException(e);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            throw new ParkingException(e);
         }
         System.out.println("Parking finished.");
     }
@@ -197,11 +195,14 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
             calibrationManager.performManagementActions();
         } catch (UnknownPanelCurrentStep e) {
             System.out.println("Received UnknownPanelCurrentStep exception, parking system to recalibrate it.");
+            for (SystemManagerListener listener : listeners) {
+                listener.performingParkDueTo(e);
+            }
             park();
         } catch (ConnectionLostException e) {
-            e.printStackTrace();
+            throw new CalibrationException(e);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            throw new CalibrationException(e);
         }
         System.out.println("System calibration finished.");
     }
@@ -213,7 +214,12 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
         sunPositionData.longitude = gpsData.getLongitude();
         sunPositionData.setTime(gpsData.getTime());
         sunPositionData.elevation = gpsData.getAltitude();
-        SunPositionCalculator.calculateSunPosition(sunPositionData);
+
+        try {
+            SunPositionCalculator.calculateSunPosition(sunPositionData);
+        } catch (Exception e) {
+            throw new SystemException(e);
+        }
 
         System.out.println("Azimuth: " + sunPositionData.azimuth + ", Zenith: " + sunPositionData.zenith);
 
@@ -225,13 +231,19 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
         try {
             positioningManager.performManagementActions();
         } catch (CurrentTimeBeforeSunriseException e) {
+            for (SystemManagerListener listener : listeners) {
+                listener.performingParkDueTo(e);
+            }
             safePark();
         } catch (CurrentTimeAfterSunsetException e) {
+            for (SystemManagerListener listener : listeners) {
+                listener.performingParkDueTo(e);
+            }
             safePark();
         } catch (ConnectionLostException e) {
-            e.printStackTrace();
+            throw new PositioningException(e);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            throw new PositioningException(e);
         }
         System.out.println("Positioning finished.");
     }
@@ -254,4 +266,5 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
             listener.incompatibleBoard(ioio);
         }
     }
+
 }
