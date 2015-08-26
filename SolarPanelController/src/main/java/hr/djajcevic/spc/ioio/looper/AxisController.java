@@ -110,12 +110,11 @@ public class AxisController {
         for (int step = 0; step < Math.abs(steps); step++) {
             try {
                 performMovement(positiveDirection);
-                validateMovement(positiveDirection);
             } catch (PanelReachedStartPosition e) {
                 delegate.reachedStartPosition();
                 break;
             } catch (PanelReachedEndPosition e) {
-                delegate.reachedStartPosition();
+                delegate.reachedEndPosition();
                 break;
             }
         }
@@ -189,7 +188,7 @@ public class AxisController {
                 delegate.reachedStartPosition();
                 break;
             } catch (PanelReachedEndPosition e) {
-                delegate.reachedStartPosition();
+                delegate.reachedEndPosition();
                 break;
             }
         }
