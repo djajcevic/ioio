@@ -182,9 +182,9 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
         try {
             parkingManager.performManagementActions();
         } catch (ConnectionLostException e) {
-            throw new ParkingException(e);
+            notifyDelegatesForSystemError(new ParkingException(e));
         } catch (InterruptedException e) {
-            throw new ParkingException(e);
+            notifyDelegatesForSystemError(new ParkingException(e));
         }
         System.out.println("Parking finished.");
     }
@@ -200,9 +200,9 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
             }
             park();
         } catch (ConnectionLostException e) {
-            throw new CalibrationException(e);
+            notifyDelegatesForSystemError(new CalibrationException(e));
         } catch (InterruptedException e) {
-            throw new CalibrationException(e);
+            notifyDelegatesForSystemError(new CalibrationException(e));
         }
         System.out.println("System calibration finished.");
     }
@@ -218,7 +218,7 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
         try {
             SunPositionCalculator.calculateSunPosition(sunPositionData);
         } catch (Exception e) {
-            throw new SystemException(e);
+            notifyDelegatesForSystemError(e);
         }
 
         System.out.println("Azimuth: " + sunPositionData.azimuth + ", Zenith: " + sunPositionData.zenith);
@@ -241,9 +241,9 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
             }
             safePark();
         } catch (ConnectionLostException e) {
-            throw new PositioningException(e);
+            notifyDelegatesForSystemError(new PositioningException(e));
         } catch (InterruptedException e) {
-            throw new PositioningException(e);
+            notifyDelegatesForSystemError(new PositioningException(e));
         }
         System.out.println("Positioning finished.");
     }
@@ -267,4 +267,9 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
         }
     }
 
+    private void notifyDelegatesForSystemError(final Exception e) {
+        for (SystemManagerListener listener : listeners) {
+            listener.systemError(e);
+        }
+    }
 }

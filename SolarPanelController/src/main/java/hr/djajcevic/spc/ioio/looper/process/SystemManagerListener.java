@@ -10,12 +10,14 @@ import ioio.lib.api.IOIO;
  */
 public interface SystemManagerListener {
 
+    // ioio board
     void boardConnected(IOIO ioio);
 
     void boardDisconnected();
 
     void incompatibleBoard(IOIO ioio);
 
+    // positioning
     void xAxisStepCompleted(int currentStep);
     void yAxisStepCompleted(int currentStep);
 
@@ -25,10 +27,11 @@ public interface SystemManagerListener {
     void xAxisReachedEndPosition();
     void yAxisReachedEndPosition();
 
-
+    // data
     void gpsPositionLocked(GPSData data);
-
     void compassDataReady(CompassData data);
 
+    // errors
+    void systemError(Exception e);
     void performingParkDueTo(SystemException error);
 }
