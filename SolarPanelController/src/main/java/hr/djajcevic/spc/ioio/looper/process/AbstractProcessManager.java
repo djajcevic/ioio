@@ -15,5 +15,4 @@ public abstract class AbstractProcessManager {
 
     public abstract void performManagementActions() throws ConnectionLostException, InterruptedException;
 
-
 }

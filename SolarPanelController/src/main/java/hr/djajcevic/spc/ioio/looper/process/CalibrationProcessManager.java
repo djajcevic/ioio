@@ -49,6 +49,7 @@ public class CalibrationProcessManager extends AbstractProcessManager {
             throw new RuntimeException(e);
         }
         Configuration.saveGPSData(managerRepository.getGpsData());
+
         compassReader.readData();
         Configuration.saveCompassData(managerRepository.getCompassData());
 

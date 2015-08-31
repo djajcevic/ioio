@@ -20,10 +20,9 @@ public class ParkingProcessManager extends AbstractProcessManager {
 
     @Override
     public void performManagementActions() throws ConnectionLostException, InterruptedException {
-        // 30 degrees left
         xAxisController.move(false);
         Configuration.saveCurrentXStep(xAxisController.getCurrentStep());
-        // 30 degrees down
+
         yAxisController.move(false);
         Configuration.saveCurrentYStep(yAxisController.getCurrentStep());
     }

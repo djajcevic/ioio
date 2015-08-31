@@ -1,6 +1,7 @@
 package hr.djajcevic.spc.process;
 
 import hr.djajcevic.spc.ioio.looper.compas.CompassData;
+import hr.djajcevic.spc.ioio.looper.exception.SystemException;
 import hr.djajcevic.spc.ioio.looper.gps.GPSData;
 import hr.djajcevic.spc.ioio.looper.process.PositioningProcessManager;
 import hr.djajcevic.spc.ioio.looper.process.SystemManager;
@@ -315,6 +316,16 @@ public class SystemManagerTest {
                 @Override
                 public void compassDataReady(final CompassData data) {
                     System.out.println("Compass ready: " + data);
+                }
+
+                @Override
+                public void systemError(final Exception e) {
+
+                }
+
+                @Override
+                public void performingParkDueTo(final SystemException error) {
+
                 }
             });
             systemManager.setup(ioio);

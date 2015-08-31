@@ -6,6 +6,8 @@ package hr.djajcevic.spc.ioio.looper.exception;
 public class SystemException extends RuntimeException {
     private static final long serialVersionUID = -5173529710282884019L;
 
+    public SystemException() {}
+
     public SystemException(final Throwable cause) {
         super(cause);
     }

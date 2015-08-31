@@ -43,30 +43,10 @@ public class PositioningProcessManager extends AbstractProcessManager {
 
         SunPositionData sunPositionData = managerRepository.getSunPositionData();
 
-        Calendar calendar = GregorianCalendar.getInstance();
-        TimeZone aDefault = TimeZone.getDefault();
-        boolean b = aDefault.inDaylightTime(new Date());
-        int correction = b ? 1 : 0;
-        calendar.setTimeZone(aDefault);
-
-        double min = 60.0 * (sunPositionData.sunrise - (int) (sunPositionData.sunrise));
-        double sec = 60.0 * (min - (int) min);
-        calendar.set(Calendar.HOUR_OF_DAY, (int) sunPositionData.sunrise + correction);
-        calendar.set(Calendar.MINUTE, (int) min);
-        calendar.set(Calendar.SECOND, (int) sec);
-        Calendar sunrise = Calendar.getInstance();
-        sunrise.setTime(calendar.getTime());
-        System.out.println("Sunrise: " + calendar.getTime());
+        Calendar sunrise = calculateTimeFromSunPositionDataTime(sunPositionData.sunrise);
         System.out.println("Sunrise: " + sunrise.getTime());
 
-        min = 60.0 * (sunPositionData.sunset - (int) (sunPositionData.sunset));
-        sec = 60.0 * (min - (int) min);
-        calendar.set(Calendar.HOUR_OF_DAY, (int) sunPositionData.sunset + correction);
-        calendar.set(Calendar.MINUTE, (int) min);
-        calendar.set(Calendar.SECOND, (int) sec);
-        Calendar sunset = Calendar.getInstance();
-        sunset.setTime(calendar.getTime());
-        System.out.println("Sunset: " + calendar.getTime());
+        Calendar sunset = calculateTimeFromSunPositionDataTime(sunPositionData.sunset);
         System.out.println("Sunset: " + sunset.getTime());
 
         Calendar gpsTime = managerRepository.getGpsData().getTime();
@@ -102,9 +82,9 @@ public class PositioningProcessManager extends AbstractProcessManager {
         Configuration.saveCurrentXStep(xAxisController.getCurrentStep());
 
         int nextYPositionAngle = calculateNextYPositionAngle((double) yAxisController.getCurrentStep(), altitude);
-        int nextYPositionStepCount = nextYPositionAngle / yAxisStepDegree;
-
         System.out.println("Next Y position angle `" + nextYPositionAngle + "` for Sun altitude `" + altitude + "`");
+
+        int nextYPositionStepCount = nextYPositionAngle / yAxisStepDegree;
 
         if (nextYPositionStepCount < currentStep && currentStep == 0) {
             System.out.println("Next Y position angle is unreachable. Skipping...");
@@ -131,5 +111,20 @@ public class PositioningProcessManager extends AbstractProcessManager {
         return minAbs == xAbs ? x : y;
     }
 
+    public static Calendar calculateTimeFromSunPositionDataTime(double sunPositionDataTime) {
+        Calendar calendar = GregorianCalendar.getInstance();
+        TimeZone aDefault = TimeZone.getDefault();
+        boolean b = aDefault.inDaylightTime(new Date());
+        int correction = b ? 1 : 0;
+        calendar.setTimeZone(aDefault);
+
+        double min = 60.0 * (sunPositionDataTime - (int) (sunPositionDataTime));
+        double sec = 60.0 * (min - (int) min);
+        calendar.set(Calendar.HOUR_OF_DAY, (int) sunPositionDataTime + correction);
+        calendar.set(Calendar.MINUTE, (int) min);
+        calendar.set(Calendar.SECOND, (int) sec);
+
+        return calendar;
+    }
 
 }

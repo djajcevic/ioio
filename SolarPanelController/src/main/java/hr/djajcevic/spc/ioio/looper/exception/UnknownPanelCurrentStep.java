@@ -6,6 +6,9 @@ package hr.djajcevic.spc.ioio.looper.exception;
 public class UnknownPanelCurrentStep extends SystemException {
     private static final long serialVersionUID = -5173529710282884019L;
 
+    public UnknownPanelCurrentStep() {
+    }
+
     public UnknownPanelCurrentStep(final Throwable cause) {
         super(cause);
     }

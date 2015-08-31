@@ -6,6 +6,9 @@ package hr.djajcevic.spc.ioio.looper.exception;
 public class
         CurrentTimeAfterSunsetException extends SystemException {
 
+    public CurrentTimeAfterSunsetException() {
+    }
+
     public CurrentTimeAfterSunsetException(final Throwable cause) {
         super(cause);
     }

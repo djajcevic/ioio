@@ -14,6 +14,7 @@ import ioio.lib.api.exception.ConnectionLostException;
 import ioio.lib.util.IOIOLooper;
 import lombok.Getter;
 
+import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -164,9 +165,37 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
     @Override
     public void loop() throws ConnectionLostException, InterruptedException {
         safePark();
-        calibrate();
+        if (!checkPosition()) {
+            calibrate();
+        }
         calculateNextPosition();
         doPosition();
+    }
+
+    private boolean checkPosition() {
+        try {
+            GPSData oldGPSData = new GPSData();
+            Configuration.loadGPSData(oldGPSData);
+
+            gpsReader.readData();
+            Configuration.saveGPSData(getGpsData());
+
+            double latitudeDiff = oldGPSData.getLatitude() - getGpsData().getLatitude();
+            double longitudeDiff = oldGPSData.getLongitude() - getGpsData().getLongitude();
+            if (Math.abs(latitudeDiff) > 0.5) {
+                return false;
+            } else if (Math.abs(longitudeDiff) > 0.5) {
+                return false;
+            } else {
+                return true;
+            }
+        } catch (IOException e) {
+            notifyDelegatesForSystemError(new SystemException(e));
+            return false;
+        } catch (ConnectionLostException e) {
+            notifyDelegatesForSystemError(new SystemException(e));
+            return false;
+        }
     }
 
     private void safePark() {
@@ -195,9 +224,7 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
             calibrationManager.performManagementActions();
         } catch (UnknownPanelCurrentStep e) {
             System.out.println("Received UnknownPanelCurrentStep exception, parking system to recalibrate it.");
-            for (SystemManagerListener listener : listeners) {
-                listener.performingParkDueTo(e);
-            }
+            notifyDelegatesForParkingActionDueToException(e);
             park();
         } catch (ConnectionLostException e) {
             notifyDelegatesForSystemError(new CalibrationException(e));
@@ -231,14 +258,10 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
         try {
             positioningManager.performManagementActions();
         } catch (CurrentTimeBeforeSunriseException e) {
-            for (SystemManagerListener listener : listeners) {
-                listener.performingParkDueTo(e);
-            }
+            notifyDelegatesForParkingActionDueToException(e);
             safePark();
         } catch (CurrentTimeAfterSunsetException e) {
-            for (SystemManagerListener listener : listeners) {
-                listener.performingParkDueTo(e);
-            }
+            notifyDelegatesForParkingActionDueToException(e);
             safePark();
         } catch (ConnectionLostException e) {
             notifyDelegatesForSystemError(new PositioningException(e));
@@ -270,6 +293,12 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
     private void notifyDelegatesForSystemError(final Exception e) {
         for (SystemManagerListener listener : listeners) {
             listener.systemError(e);
+        }
+    }
+
+    private void notifyDelegatesForParkingActionDueToException(final SystemException e) {
+        for (SystemManagerListener listener : listeners) {
+            listener.performingParkDueTo(e);
         }
     }
 }
