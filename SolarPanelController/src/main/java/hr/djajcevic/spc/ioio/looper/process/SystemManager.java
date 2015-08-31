@@ -165,9 +165,7 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
     @Override
     public void loop() throws ConnectionLostException, InterruptedException {
         safePark();
-        if (!checkPosition()) {
-            calibrate();
-        }
+        calibrate();
         calculateNextPosition();
         doPosition();
     }

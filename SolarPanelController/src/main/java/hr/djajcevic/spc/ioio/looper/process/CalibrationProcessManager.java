@@ -4,6 +4,7 @@ import hr.djajcevic.spc.ioio.looper.AxisController;
 import hr.djajcevic.spc.ioio.looper.compas.CompassReader;
 import hr.djajcevic.spc.ioio.looper.exception.CompassDataNotAvailable;
 import hr.djajcevic.spc.ioio.looper.exception.UnknownPanelCurrentStep;
+import hr.djajcevic.spc.ioio.looper.gps.GPSData;
 import hr.djajcevic.spc.ioio.looper.gps.GPSReader;
 import hr.djajcevic.spc.util.Configuration;
 import ioio.lib.api.exception.ConnectionLostException;
@@ -31,24 +32,41 @@ public class CalibrationProcessManager extends AbstractProcessManager {
 
     @Override
     public void performManagementActions() throws ConnectionLostException, InterruptedException {
-        // 30 degrees left
-        xAxisController.move(false, 30);
-        // 30 degrees down
-        yAxisController.move(false, 30);
-        // 30 degrees right
-        xAxisController.move(true, 30);
-        // 30 degrees up
-        yAxisController.move(true, 30);
+        GPSData oldGPSData = new GPSData();
+        Configuration.loadGPSData(oldGPSData);
 
-        Configuration.saveCurrentXStep(xAxisController.getCurrentStep());
-        Configuration.saveCurrentYStep(yAxisController.getCurrentStep());
+        boolean needsCalibration = false;
 
         try {
             gpsReader.readData();
+            Configuration.saveGPSData(managerRepository.getGpsData());
+
+            if (oldGPSData.getLatitude() == null) {
+                // initial action
+                needsCalibration = true;
+            } else {
+                double latitudeDiff = oldGPSData.getLatitude() - managerRepository.getGpsData().getLatitude();
+                double longitudeDiff = oldGPSData.getLongitude() - managerRepository.getGpsData().getLongitude();
+                needsCalibration = Math.abs(latitudeDiff) > 0.5 || Math.abs(longitudeDiff) > 0.5;
+            }
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        Configuration.saveGPSData(managerRepository.getGpsData());
+
+        if (needsCalibration) {
+            // 30 degrees left
+            xAxisController.move(false, 30);
+            // 30 degrees down
+            yAxisController.move(false, 30);
+            // 30 degrees right
+            xAxisController.move(true, 30);
+            // 30 degrees up
+            yAxisController.move(true, 30);
+
+            Configuration.saveCurrentXStep(xAxisController.getCurrentStep());
+            Configuration.saveCurrentYStep(yAxisController.getCurrentStep());
+        }
 
         compassReader.readData();
         Configuration.saveCompassData(managerRepository.getCompassData());

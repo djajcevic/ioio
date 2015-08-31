@@ -123,7 +123,6 @@ public class Configuration {
         data.setLongitude(getStatusDouble(GPS_LONGITUDE));
         data.setLongitudeDirection(getStatus(GPS_LONGITUDE_DIRECTION));
         data.setAltitude(getStatusDouble(GPS_ALTITUDE));
-        storeStatusProperties();
     }
 
     public static void saveCompassData(CompassData data) {
