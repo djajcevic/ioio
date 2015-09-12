@@ -56,6 +56,9 @@ public class GPSReader implements IOIOReader {
                     if (data == null) continue;
 
                     delegate.positionLocked(data);
+                    if (data.getLatitude() != null && data.getLongitude() != null) {
+                        break;
+                    }
                 }
             }
             reader.close();

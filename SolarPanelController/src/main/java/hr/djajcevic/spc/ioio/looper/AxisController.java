@@ -301,6 +301,15 @@ public class AxisController {
         }
     }
 
+    public void checkConnections() throws ConnectionLostException, InterruptedException {
+        directionPinOutput.write(true);
+        Thread.sleep(500);
+        directionPinOutput.write(false);
+        controlPinOutput.setPulseWidth(1000000);
+        Thread.sleep(500);
+        controlPinOutput.setPulseWidth(0);
+    }
+
     public enum Axis {
         X, Y
     }

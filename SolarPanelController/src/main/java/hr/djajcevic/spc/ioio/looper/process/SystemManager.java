@@ -164,10 +164,43 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
 
     @Override
     public void loop() throws ConnectionLostException, InterruptedException {
+
+        checkSystem();
+
+        /*
         safePark();
         calibrate();
         calculateNextPosition();
         doPosition();
+        */
+    }
+
+    private void checkSystem() {
+        try {
+            System.out.println("Checking system...");
+            System.out.println("Checking x axis");
+            xAxisController.checkConnections();
+            System.out.println("Checking y axis");
+            yAxisController.checkConnections();
+
+            System.out.println("Checking compass");
+            compassReader.readData();
+
+            System.out.println(compassData);
+
+            System.out.println("Checking gps");
+            gpsReader.readData();
+
+            System.out.println(gpsData);
+
+            System.out.println("System checket.");
+        } catch (ConnectionLostException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private boolean checkPosition() {
