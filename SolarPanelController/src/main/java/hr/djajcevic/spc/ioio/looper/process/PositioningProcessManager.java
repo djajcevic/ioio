@@ -2,15 +2,12 @@ package hr.djajcevic.spc.ioio.looper.process;
 
 import hr.djajcevic.spc.calculator.SunPositionData;
 import hr.djajcevic.spc.ioio.looper.AxisController;
-import hr.djajcevic.spc.ioio.looper.exception.CurrentTimeBeforeSunriseException;
 import hr.djajcevic.spc.ioio.looper.exception.CurrentTimeAfterSunsetException;
+import hr.djajcevic.spc.ioio.looper.exception.CurrentTimeBeforeSunriseException;
 import hr.djajcevic.spc.util.Configuration;
 import ioio.lib.api.exception.ConnectionLostException;
 
 import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.TimeZone;
 
 /**
  * @author djajcevic | 11.08.2015.
@@ -43,10 +40,10 @@ public class PositioningProcessManager extends AbstractProcessManager {
 
         SunPositionData sunPositionData = managerRepository.getSunPositionData();
 
-        Calendar sunrise = calculateTimeFromSunPositionDataTime(sunPositionData.sunrise);
+        Calendar sunrise = sunPositionData.sunriseCalendar;
         System.out.println("Sunrise: " + sunrise.getTime());
 
-        Calendar sunset = calculateTimeFromSunPositionDataTime(sunPositionData.sunset);
+        Calendar sunset = sunPositionData.sunsetCalendar;
         System.out.println("Sunset: " + sunset.getTime());
 
         Calendar gpsTime = managerRepository.getGpsData().getTime();
@@ -111,20 +108,6 @@ public class PositioningProcessManager extends AbstractProcessManager {
         return minAbs == xAbs ? x : y;
     }
 
-    public static Calendar calculateTimeFromSunPositionDataTime(double sunPositionDataTime) {
-        Calendar calendar = GregorianCalendar.getInstance();
-        TimeZone aDefault = TimeZone.getDefault();
-        boolean b = aDefault.inDaylightTime(new Date());
-        int correction = b ? 1 : 0;
-        calendar.setTimeZone(aDefault);
 
-        double min = 60.0 * (sunPositionDataTime - (int) (sunPositionDataTime));
-        double sec = 60.0 * (min - (int) min);
-        calendar.set(Calendar.HOUR_OF_DAY, (int) sunPositionDataTime + correction);
-        calendar.set(Calendar.MINUTE, (int) min);
-        calendar.set(Calendar.SECOND, (int) sec);
-
-        return calendar;
-    }
 
 }

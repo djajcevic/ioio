@@ -28,8 +28,6 @@
  */
 package ioio.lib.impl;
 
-import ioio.lib.spi.Log;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Queue;
@@ -92,7 +90,7 @@ class QueueInputStream extends InputStream {
 	synchronized public void write(byte[] data, int size) {
 		for (int i = 0; i < size; ++i) {
 			if (queue_.size() == Constants.BUFFER_SIZE) {
-				Log.e("QueueInputStream", "Buffer overflow, discarding data");
+//				Log.e("QueueInputStream", "Buffer overflow, discarding data");
 				break;
 			}
 			queue_.add(data[i]);
@@ -122,4 +120,9 @@ class QueueInputStream extends InputStream {
 		notifyAll();
 	}
 
+
+	@Override
+	public synchronized void reset() throws IOException {
+		queue_.clear();
+	}
 }

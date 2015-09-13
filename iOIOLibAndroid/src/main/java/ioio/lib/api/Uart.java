@@ -104,4 +104,5 @@ public interface Uart extends Closeable {
 	 * @return An output stream.
 	 */
 	public OutputStream getOutputStream();
+
 }

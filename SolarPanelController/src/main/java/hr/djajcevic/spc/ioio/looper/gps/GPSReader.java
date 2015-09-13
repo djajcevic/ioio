@@ -26,6 +26,7 @@ public class GPSReader implements IOIOReader {
 
     private InputStream gpsDataInputStream;
     private OutputStream gpsDataOutputStream;
+    private BufferedReader reader;
 
     public GPSReader(final IOIO ioio, final Delegate delegate) {
         this.ioio = ioio;
@@ -39,14 +40,14 @@ public class GPSReader implements IOIOReader {
         }
 
         int availableBytes = gpsDataInputStream.available();
-        byte[] readBuffer = new byte[64];
 
         if (availableBytes > 0) {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(gpsDataInputStream));
+
             String result = null;
 
             while ((result = reader.readLine()) != null) {
                 if (!result.startsWith("$GPGGA")) {
+                    gpsDataOutputStream.write(result.getBytes());
                     continue;
                 }
                 String[] split = result.split(",");
@@ -57,11 +58,13 @@ public class GPSReader implements IOIOReader {
 
                     delegate.positionLocked(data);
                     if (data.getLatitude() != null && data.getLongitude() != null) {
+                        gpsDataOutputStream.write(result.getBytes());
                         break;
                     }
                 }
+                gpsDataOutputStream.write(result.getBytes());
+                break;
             }
-            reader.close();
         }
     }
 
@@ -99,6 +102,8 @@ public class GPSReader implements IOIOReader {
 
         uartInput = ioio.openUart(gpsPin, IOIO.INVALID_PIN, gpsFreq, Uart.Parity.NONE, Uart.StopBits.ONE);
         gpsDataInputStream = uartInput.getInputStream();
+        gpsDataOutputStream = uartInput.getOutputStream();
+        reader = new BufferedReader(new InputStreamReader(gpsDataInputStream), 1024);
 
         initialized = true;
     }

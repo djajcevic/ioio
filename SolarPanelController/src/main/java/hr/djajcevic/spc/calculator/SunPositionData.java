@@ -19,6 +19,9 @@ public class SunPositionData {
     public double temperature;
     public double atmos_refract;
 
+    public Calendar sunsetCalendar;
+    public Calendar sunriseCalendar;
+
 
     public int year;
     public int month;

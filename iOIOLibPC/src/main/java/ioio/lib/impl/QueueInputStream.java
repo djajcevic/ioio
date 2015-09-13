@@ -122,4 +122,8 @@ class QueueInputStream extends InputStream {
 		notifyAll();
 	}
 
+	@Override
+	public synchronized void reset() throws IOException {
+		queue_.clear();
+	}
 }

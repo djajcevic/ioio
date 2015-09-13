@@ -3,8 +3,9 @@ package hr.djajcevic.spc.util;
 import hr.djajcevic.spc.ioio.looper.compas.CompassData;
 import hr.djajcevic.spc.ioio.looper.gps.GPSData;
 
-import java.io.*;
-import java.net.URL;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
 /**
@@ -22,9 +23,9 @@ public class Configuration {
     public static final String SERVO_X_STEP_DEGREE = "servo.X.stepDegree";
     public static final String SERVO_Y_STEP_DEGREE = "servo.Y.stepDegree";
 
-    private static final FileInputStream reader;
-    private static final File statusPropertiesFile;
-    private static final FileOutputStream writer;
+    private static InputStream reader;
+//    private static final File statusPropertiesFile;
+//    private static final FileOutputStream writer;
     public static final String COMPASS_HEADING = "compass.heading";
     public static final String COMPASS_HEADING_DEGREES = "compass.headingDegrees";
     public static final String COMPASS_X = "compass.x";
@@ -33,34 +34,29 @@ public class Configuration {
     private static Properties properties;
     private static Properties statusProperties;
 
-    static {
+    public static void initialize(final String configurationLocation, final String statusesLocation) {
         properties = new Properties();
         statusProperties = new Properties();
-        try {
-            String configurationFileName = "configuration.properties";
-            String statusFileName = "status.properties";
-            URL configurationFile = Configuration.class.getClassLoader().getResource(configurationFileName);
-            URL resourceLocation = Configuration.class.getClassLoader().getResource("");
-            assert configurationFile != null;
-            String configurationFilePath = configurationFile.getFile();
-
-            assert resourceLocation != null;
-            String statusFilePath = resourceLocation.getFile() + statusFileName;
-            File statusFile = new File(statusFilePath);
-            statusPropertiesFile = statusFile;
-            if (!statusFile.exists()) {
-                statusFile.createNewFile();
+        if (configurationLocation != null) {
+            try {
+                reader = new FileInputStream(configurationLocation);
+                properties.load(reader);
+            } catch (IOException e) {
+                throw new RuntimeException("configuration.properties could not be found", e);
             }
-            FileReader inStream = new FileReader(statusFile);
-            statusProperties.load(inStream);
+        }
+    }
 
-            reader = new FileInputStream(configurationFilePath);
-            writer = new FileOutputStream(statusFile);
-            properties.load(reader);
-
-
-        } catch (IOException e) {
-            throw new RuntimeException("configuration.properties could not be found", e);
+    public static void initialize(final InputStream configuration, final InputStream statuses) {
+        properties = new Properties();
+        statusProperties = new Properties();
+        if (configuration != null) {
+            try {
+                reader = configuration;
+                properties.load(reader);
+            } catch (IOException e) {
+                throw new RuntimeException("configuration.properties could not be found", e);
+            }
         }
     }
 
@@ -93,11 +89,11 @@ public class Configuration {
     }
 
     private static synchronized void storeStatusProperties() {
-        try {
-            statusProperties.store(new FileWriter(statusPropertiesFile, false), null);
-        } catch (IOException e) {
-            throw new RuntimeException("Error while saving status properties", e);
-        }
+//        try {
+//            statusProperties.store(new FileWriter(statusPropertiesFile, false), null);
+//        } catch (IOException e) {
+//            throw new RuntimeException("Error while saving status properties", e);
+//        }
     }
 
     public static synchronized void saveCurrentXStep(int currentStep) {

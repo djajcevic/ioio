@@ -18,6 +18,9 @@ public interface SystemManagerListener {
     void incompatibleBoard(IOIO ioio);
 
     // positioning
+
+    void message(final String message);
+
     void xAxisStepCompleted(int currentStep);
     void yAxisStepCompleted(int currentStep);
 

@@ -12,7 +12,7 @@ import lombok.Getter;
  */
 public class AxisController {
 
-    public static final int PULSE_WIDTH = 1000;
+    public static final int PULSE_WIDTH = 100000;
     public static final int MAXIMUM_FAILED_STEPS = 2;
     private Delegate delegate;
     private IOIO ioio;
@@ -43,7 +43,7 @@ public class AxisController {
     private int maxSteps;
 
     @Getter
-    private boolean atStart, atEnd;
+    private boolean atStart = true, atEnd = false;
 
     private boolean initialized;
     private boolean forceStop;
@@ -116,6 +116,8 @@ public class AxisController {
             } catch (PanelReachedEndPosition e) {
                 delegate.reachedEndPosition();
                 break;
+            } finally {
+                controlPinOutput.setPulseWidth(0);
             }
         }
     }
@@ -190,6 +192,8 @@ public class AxisController {
             } catch (PanelReachedEndPosition e) {
                 delegate.reachedEndPosition();
                 break;
+            } finally {
+                controlPinOutput.setPulseWidth(0);
             }
         }
 
@@ -206,14 +210,31 @@ public class AxisController {
             throw new ServoMotorUnavailableException("Too many failed steps on " + this + " controller!");
         }
 
-        if (!validateDirection(positiveDirection)) {
+        try {
+            if (!validateDirection(positiveDirection)) {
+                return false;
+            }
+        } catch (PanelReachedEndPosition endPosition) {
+            delegate.reachedEndPosition();
+            return false;
+        } catch (PanelReachedStartPosition startPosition) {
+            delegate.reachedStartPosition();
             return false;
         }
 
         directionPinOutput.write(positiveDirection);
         controlPinOutput.setPulseWidth(PULSE_WIDTH);
 
-        checkStartEndIndicators();
+        try {
+            checkStartEndIndicators();
+
+        } catch (PanelReachedEndPosition endPosition) {
+            delegate.reachedEndPosition();
+            return false;
+        } catch (PanelReachedStartPosition startPosition) {
+            delegate.reachedStartPosition();
+            return false;
+        }
 
         if (validateMovement(positiveDirection)) {
             currentStep = positiveDirection ? currentStep + 1 : currentStep - 1;
@@ -226,6 +247,11 @@ public class AxisController {
     }
 
     private boolean validateDirection(final boolean positiveDirection) {
+//        if (!Configuration.getConfigBoolean("skip.validation.movement")) {
+//            atStart = currentStep == 0;
+//            return true;
+//        }
+
         if (atStart && !positiveDirection) {
             throw new PanelReachedStartPosition(axis);
         }
@@ -248,10 +274,16 @@ public class AxisController {
     private void checkStartEndIndicators() throws ConnectionLostException, InterruptedException {
         atStart = startPositionIndicatorPinInput.read();
         atEnd = endPositionIndicatorPinInput.read();
-
         if (atStart && atEnd) {
             throw new InvalidPanelStateException("Invalid start/end position!");
         }
+
+//        if (!Configuration.getConfigBoolean("skip.validation.movement")) {
+//
+//            return;
+//        } else {
+//            if (currentStep > 0) atStart = false;
+//        }
 
         if (atStart) {
             currentStep = 0;

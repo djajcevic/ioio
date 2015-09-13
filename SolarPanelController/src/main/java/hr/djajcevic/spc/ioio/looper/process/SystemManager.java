@@ -13,10 +13,10 @@ import ioio.lib.api.IOIO;
 import ioio.lib.api.exception.ConnectionLostException;
 import ioio.lib.util.IOIOLooper;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.io.IOException;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author djajcevic | 11.08.2015.
@@ -50,10 +50,16 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
     boolean systemCheckModeOn = false;
     boolean sleepOn = true;
 
+    @Setter
+    @Getter
+    Delegate delegate;
+
     @Getter
     private SunPositionData sunPositionData;
 
     private void initialize() throws ConnectionLostException, InterruptedException {
+
+        notifyDelegatesForSystemMessage("Initializing");
 
         xAxisController = new AxisController(new AxisController.Delegate() {
             @Override
@@ -143,6 +149,7 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
     @Override
     public void positionLocked(final GPSData data) {
         gpsData = data;
+        calculateNextPosition();
         for (SystemManagerListener listener : listeners) {
             listener.gpsPositionLocked(data);
         }
@@ -168,41 +175,53 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
     @Override
     public void loop() throws ConnectionLostException, InterruptedException {
 
-        if (sleepOn) {
-            System.out.println("Sleeping");
-            return;
-        }
+        try {
+            if (delegate != null) {
+                delegate.beforeLoop(this);
+            }
 
-        if (systemCheckModeOn) {
-            checkSystem();
-            return;
-        }
+            if (sleepOn) {
+                notifyDelegatesForSystemMessage("Sleeping");
+                Thread.sleep(1000);
+                return;
+            }
 
-        safePark();
-        calibrate();
-        calculateNextPosition();
-        doPosition();
+            if (systemCheckModeOn) {
+                checkSystem();
+                Thread.sleep(1000);
+                return;
+            }
+
+            safePark();
+            calibrate();
+            calculateNextPosition();
+            doPosition();
+            Thread.sleep(12000);
+        } catch (Exception e) {
+            notifyDelegatesForSystemError(e);
+        }
     }
 
     private void checkSystem() {
         try {
-            System.out.println("Checking system...");
-            System.out.println("Checking x axis");
+            notifyDelegatesForSystemMessage("Checking system...");
+            notifyDelegatesForSystemMessage("Checking system...");
+            notifyDelegatesForSystemMessage("Checking x axis");
             xAxisController.checkConnections();
-            System.out.println("Checking y axis");
+            notifyDelegatesForSystemMessage("Checking y axis");
             yAxisController.checkConnections();
 
-            System.out.println("Checking compass");
+            notifyDelegatesForSystemMessage("Checking compass");
             compassReader.readData();
 
             System.out.println(compassData);
 
-            System.out.println("Checking gps");
+            notifyDelegatesForSystemMessage("Checking gps");
             gpsReader.readData();
 
             System.out.println(gpsData);
 
-            System.out.println("System checket.");
+            notifyDelegatesForSystemMessage("System checket.");
         } catch (ConnectionLostException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -247,7 +266,7 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
     }
 
     private void park() {
-        System.out.println("Parking system...");
+        notifyDelegatesForSystemMessage("Parking system...");
         try {
             parkingManager.performManagementActions();
         } catch (ConnectionLostException e) {
@@ -255,15 +274,15 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
         } catch (InterruptedException e) {
             notifyDelegatesForSystemError(new ParkingException(e));
         }
-        System.out.println("Parking finished.");
+        notifyDelegatesForSystemMessage("Parking finished.");
     }
 
     private void calibrate() {
-        System.out.println("Calibrating system...");
+        notifyDelegatesForSystemMessage("Calibrating system...");
         try {
             calibrationManager.performManagementActions();
         } catch (UnknownPanelCurrentStep e) {
-            System.out.println("Received UnknownPanelCurrentStep exception, parking system to recalibrate it.");
+            notifyDelegatesForSystemMessage("Received UnknownPanelCurrentStep exception, parking system to recalibrate it.");
             notifyDelegatesForParkingActionDueToException(e);
             park();
         } catch (ConnectionLostException e) {
@@ -271,30 +290,34 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
         } catch (InterruptedException e) {
             notifyDelegatesForSystemError(new CalibrationException(e));
         }
-        System.out.println("System calibration finished.");
+        notifyDelegatesForSystemMessage("System calibration finished.");
     }
 
     private void calculateNextPosition() {
-        System.out.println("Calculating next doPosition...");
-
-        sunPositionData.latitude = gpsData.getLatitude();
-        sunPositionData.longitude = gpsData.getLongitude();
-        sunPositionData.setTime(gpsData.getTime());
-        sunPositionData.elevation = gpsData.getAltitude();
+        notifyDelegatesForSystemMessage("Calculating next doPosition...");
 
         try {
+            sunPositionData.latitude = gpsData.getLatitude();
+            sunPositionData.longitude = gpsData.getLongitude();
+            sunPositionData.setTime(gpsData.getTime());
+            sunPositionData.elevation = gpsData.getAltitude();
             SunPositionCalculator.calculateSunPosition(sunPositionData);
         } catch (Exception e) {
             notifyDelegatesForSystemError(e);
         }
 
+        sunPositionData.sunriseCalendar = calculateTimeFromSunPositionDataTime(sunPositionData.sunrise);
+
+
+        sunPositionData.sunsetCalendar = calculateTimeFromSunPositionDataTime(sunPositionData.sunset);
+
         System.out.println("Azimuth: " + sunPositionData.azimuth + ", Zenith: " + sunPositionData.zenith);
 
-        System.out.println("Calculation finished.");
+        notifyDelegatesForSystemMessage("Calculation finished.");
     }
 
     private void doPosition() {
-        System.out.println("Positioning system...");
+        notifyDelegatesForSystemMessage("Positioning system...");
         try {
             positioningManager.performManagementActions();
         } catch (CurrentTimeBeforeSunriseException e) {
@@ -308,7 +331,7 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
         } catch (InterruptedException e) {
             notifyDelegatesForSystemError(new PositioningException(e));
         }
-        System.out.println("Positioning finished.");
+        notifyDelegatesForSystemMessage("Positioning finished.");
     }
 
     @Override
@@ -330,6 +353,13 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
         }
     }
 
+    private void notifyDelegatesForSystemMessage(final String message) {
+        System.out.println("SystemManager: " + message);
+        for (SystemManagerListener listener : listeners) {
+            listener.message(message);
+        }
+    }
+
     private void notifyDelegatesForSystemError(final Exception e) {
         for (SystemManagerListener listener : listeners) {
             listener.systemError(e);
@@ -348,5 +378,25 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
 
     public void setSleepOn(final boolean sleepOn) {
         this.sleepOn = sleepOn;
+    }
+
+    public static interface Delegate {
+        void beforeLoop(SystemManager systemManager);
+    }
+
+    public static Calendar calculateTimeFromSunPositionDataTime(double sunPositionDataTime) {
+        Calendar calendar = GregorianCalendar.getInstance();
+        TimeZone aDefault = TimeZone.getDefault();
+        boolean b = aDefault.inDaylightTime(new Date());
+        int correction = b ? 1 : 0;
+        calendar.setTimeZone(aDefault);
+
+        double min = 60.0 * (sunPositionDataTime - (int) (sunPositionDataTime));
+        double sec = 60.0 * (min - (int) min);
+        calendar.set(Calendar.HOUR_OF_DAY, (int) sunPositionDataTime + correction);
+        calendar.set(Calendar.MINUTE, (int) min);
+        calendar.set(Calendar.SECOND, (int) sec);
+
+        return calendar;
     }
 }
