@@ -47,6 +47,9 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
     private boolean parkedX;
     private boolean parkedY;
 
+    boolean systemCheckModeOn = false;
+    boolean sleepOn = true;
+
     @Getter
     private SunPositionData sunPositionData;
 
@@ -165,14 +168,20 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
     @Override
     public void loop() throws ConnectionLostException, InterruptedException {
 
-        checkSystem();
+        if (sleepOn) {
+            System.out.println("Sleeping");
+            return;
+        }
 
-        /*
+        if (systemCheckModeOn) {
+            checkSystem();
+            return;
+        }
+
         safePark();
         calibrate();
         calculateNextPosition();
         doPosition();
-        */
     }
 
     private void checkSystem() {
@@ -331,5 +340,13 @@ public class SystemManager implements IOIOLooper, GPSReader.Delegate, CompassRea
         for (SystemManagerListener listener : listeners) {
             listener.performingParkDueTo(e);
         }
+    }
+
+    public void setSystemCheckModeOn(final boolean systemCheckModeOn) {
+        this.systemCheckModeOn = systemCheckModeOn;
+    }
+
+    public void setSleepOn(final boolean sleepOn) {
+        this.sleepOn = sleepOn;
     }
 }
